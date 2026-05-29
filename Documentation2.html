@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeamsDash — Enterprise Solution Guide & Design Document</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+<style>
+  :root {
+    --primary: #0f3460;
+    --accent: #1a6fc4;
+    --accent2: #16c79a;
+    --danger: #e94560;
+    --warn: #f5a623;
+    --bg: #f4f7fb;
+    --surface: #ffffff;
+    --sidebar-w: 300px;
+    --text: #1a2332;
+    --muted: #6b7a90;
+    --border: #d6e0f0;
+    --heading-font: 'Segoe UI', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: row; }
+
+  /* MOBILE HEADER */
+  #mobile-header {
+    display: none;
+    background: var(--primary);
+    color: #fff;
+    padding: 15px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  #mobile-header h2 { color: var(--accent2); font-size: 18px; font-weight: 700; }
+  .menu-toggle {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: var(--sidebar-w); min-height: 100vh; background: var(--primary);
+    position: fixed; top: 0; left: 0; overflow-y: auto; z-index: 100;
+    display: flex; flex-direction: column;
+    transition: transform 0.3s ease;
+  }
+  #sidebar .logo {
+    padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  #sidebar .logo h2 { color: var(--accent2); font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+  #sidebar .logo p { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 4px; }
+  #sidebar nav { flex: 1; padding: 12px 0; }
+  #sidebar nav a {
+    display: block; padding: 9px 20px; color: rgba(255,255,255,0.75);
+    text-decoration: none; font-size: 13px; border-left: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  #sidebar nav a:hover, #sidebar nav a.active {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border-left-color: var(--accent2);
+  }
+  #sidebar nav .section-label {
+    padding: 16px 20px 4px; color: rgba(255,255,255,0.35);
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+
+  /* MAIN CONTENT */
+  #main { margin-left: var(--sidebar-w); flex: 1; max-width: calc(100% - var(--sidebar-w)); }
+
+  /* COVER */
+  #cover {
+    background: linear-gradient(135deg, #0f3460 0%, #1a6fc4 60%, #16c79a 100%);
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; text-align: center; padding: 60px 40px; position: relative; overflow: hidden;
+  }
+  #cover::before {
+    content: ''; position: absolute; top: -100px; right: -100px;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: rgba(255,255,255,0.04); pointer-events: none;
+  }
+  #cover .cover-badge {
+    background: rgba(22,199,154,0.2); border: 1px solid rgba(22,199,154,0.5);
+    color: var(--accent2); font-size: 12px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; padding: 6px 18px; border-radius: 20px; margin-bottom: 28px;
+  }
+  #cover h1 { color: #fff; font-size: 54px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+  #cover h1 span { color: var(--accent2); }
+  #cover .cover-sub { color: rgba(255,255,255,0.8); font-size: 20px; margin-top: 16px; max-width: 800px; }
+  #cover .cover-meta {
+    margin-top: 48px; display: flex; gap: 40px; flex-wrap: wrap; justify-content: center;
+  }
+  #cover .meta-item { color: rgba(255,255,255,0.7); font-size: 13px; }
+  #cover .meta-item strong { color: #fff; display: block; font-size: 15px; margin-bottom: 2px; }
+  #cover .cover-tags { margin-top: 36px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  #cover .tag {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85); font-size: 12px; padding: 5px 14px; border-radius: 20px;
+  }
+
+  /* SECTIONS */
+  .section { padding: 60px 60px; border-bottom: 1px solid var(--border); }
+  .section:nth-child(even) { background: #f9fbfd; }
+  .section-header { margin-bottom: 36px; }
+  .section-number {
+    color: var(--accent2); font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .section h2 {
+    font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1.2;
+    border-bottom: 3px solid var(--accent2); padding-bottom: 12px; display: inline-block;
+  }
+  .section h3 { font-size: 22px; font-weight: 700; color: var(--primary); margin: 36px 0 16px; padding-left: 8px; border-left: 4px solid var(--accent); }
+  .section h4 { font-size: 16px; font-weight: 600; color: var(--accent); margin: 24px 0 12px; }
+  .section p { line-height: 1.8; color: #334; margin-bottom: 16px; font-size: 15px; text-align: justify; }
+  .section ul, .section ol { margin-bottom: 16px; padding-left: 24px; line-height: 1.7; font-size: 14px; color: #334; }
+  .section li { margin-bottom: 8px; }
+
+  /* CARDS */
+  .card-grid { display: grid; gap: 20px; margin: 24px 0; }
+  .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .card.accent-left { border-left: 4px solid var(--accent); }
+  .card.accent-green { border-left: 4px solid var(--accent2); }
+  .card.accent-warn { border-left: 4px solid var(--warn); }
+  .card.accent-danger { border-left: 4px solid var(--danger); }
+  .card h4 { margin-top: 0; margin-bottom: 10px; font-size: 16px; color: var(--primary); }
+  .card p { margin-bottom: 0; font-size: 14px; color: var(--text); line-height: 1.6; }
+
+  /* DIAGRAMS */
+  .diagram-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px; margin: 24px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    overflow-x: auto;
+  }
+  .diagram-box .diagram-title {
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 20px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+  .mermaid { text-align: center; min-width: 650px; margin: 0 auto; }
+
+  /* WIREFRAMES */
+  .wireframe {
+    background: #1a2332; border-radius: 12px; padding: 24px; margin: 24px 0;
+    font-family: 'Courier New', monospace; font-size: 13px; color: #a8c0d6;
+    overflow-x: auto; line-height: 1.5; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .wireframe pre { white-space: pre; color: #c8daf0; margin: 0; }
+
+  /* TABLES */
+  .table-responsive { overflow-x: auto; margin: 24px 0; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+  .data-table { width: 100%; border-collapse: collapse; margin: 0; font-size: 14px; min-width: 750px; }
+  .data-table th {
+    background: var(--primary); color: #fff; padding: 14px 16px;
+    text-align: left; font-weight: 600; font-size: 13px; letter-spacing: 0.5px;
+  }
+  .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; color: #334; line-height: 1.5; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:nth-child(even) td { background: #fdfefe; }
+  .data-table tr:hover td { background: #f0f6ff; }
+  .data-table .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-pk { background: #e8f4ff; color: #0066cc; border: 1px solid #b3d7ff; }
+  .badge-fk { background: #fff0e0; color: #cc6600; border: 1px solid #ffd1a4; }
+  .badge-req { background: #e8fff4; color: #006633; border: 1px solid #b3ffd9; }
+  .badge-opt { background: #f5f5f5; color: #666; border: 1px solid #e0e0e0; }
+
+  /* CALLOUTS */
+  .callout {
+    border-radius: 10px; padding: 18px 22px; margin: 24px 0;
+    display: flex; gap: 16px; align-items: flex-start; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+  .callout-info { background: #e8f4ff; border-left: 4px solid var(--accent); }
+  .callout-success { background: #e6fff5; border-left: 4px solid var(--accent2); }
+  .callout-warn { background: #fff8e1; border-left: 4px solid var(--warn); }
+  .callout-danger { background: #ffe8ec; border-left: 4px solid var(--danger); }
+  .callout-icon { font-size: 22px; flex-shrink: 0; line-height: 1; }
+  .callout-body { flex: 1; }
+  .callout-body p { margin: 0 !important; font-size: 14px; line-height: 1.6; color: #223; }
+  .callout-body strong { display: block; margin-bottom: 6px; font-size: 14px; color: var(--primary); }
+
+  /* STEPS */
+  .steps { margin: 24px 0; }
+  .step {
+    display: flex; gap: 18px; align-items: flex-start; margin-bottom: 16px;
+    padding: 20px; background: var(--surface); border-radius: 10px;
+    border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+  .step:last-child { margin-bottom: 0; }
+  .step-num {
+    width: 36px; height: 36px; background: var(--primary); color: #fff;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(15,52,96,0.2);
+  }
+  .step-body { flex: 1; }
+  .step-body h4 { margin: 0 0 6px; font-size: 15px; color: var(--primary); }
+  .step-body p { margin: 0; font-size: 14px; color: var(--text); line-height: 1.6; }
+
+  /* SPEC LISTS */
+  .spec-list { list-style: none; margin: 16px 0; padding-left: 0 !important; }
+  .spec-list li {
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; display: flex; justify-content: space-between; align-items: center;
+    gap: 15px; margin-bottom: 0;
+  }
+  .spec-list li:last-child { border-bottom: none; }
+  .spec-label { font-weight: 600; color: var(--primary); flex-shrink: 0; }
+  .spec-value { color: var(--text); font-size: 13px; text-align: right; word-break: break-all; font-family: monospace; background: #f5f7fa; padding: 2px 6px; border-radius: 4px; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: #1a2332; border-radius: 10px; padding: 20px;
+    font-family: 'Courier New', monospace; font-size: 13px; color: #a8d8f0;
+    overflow-x: auto; margin: 20px 0; line-height: 1.7; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  .code-block .kw { color: #ff79c6; font-weight: bold; }
+  .code-block .str { color: #50fa7b; }
+  .code-block .cmt { color: #6272a4; font-style: italic; }
+  .code-block .fn { color: #8be9fd; }
+  .code-block .var { color: #f8f8f2; }
+  .code-block .op { color: #ff79c6; }
+
+  /* ADAPTIVE CARD MOCKUP */
+  .adaptive-card {
+    background: #f3f2f1; border: 1px solid #d2d0ce; border-radius: 4px;
+    max-width: 550px; width: 100%; overflow: hidden; margin: 24px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .adaptive-card .ac-header {
+    background: #0f3460; padding: 16px 20px; color: #fff;
+  }
+  .adaptive-card .ac-header h3 { font-size: 15px; margin: 0; color: #fff; font-weight: 600; border: none; padding: 0; }
+  .adaptive-card .ac-header p { font-size: 12px; opacity: 0.8; margin: 4px 0 0; color: #fff; }
+  .adaptive-card .ac-body { padding: 16px 20px; background: #ffffff; }
+  .adaptive-card .ac-row {
+    display: flex; justify-content: space-between; margin-bottom: 12px;
+    font-size: 13px; gap: 10px;
+  }
+  .adaptive-card .ac-label { color: #605e5c; font-weight: 600; width: 140px; flex-shrink: 0; }
+  .adaptive-card .ac-value { color: #201f1e; flex: 1; text-align: left; }
+  .adaptive-card .ac-divider { border: none; border-top: 1px solid #e1dfdd; margin: 14px 0; }
+  .adaptive-card .ac-input {
+    width: 100%; padding: 8px 10px; border: 1px solid #605e5c;
+    border-radius: 2px; font-size: 13px; margin-bottom: 10px;
+    background: #fff; font-family: inherit; color: #323130;
+  }
+  .adaptive-card select.ac-input { background: #fff; height: 32px; }
+  .adaptive-card .ac-actions { padding: 12px 20px; background: #f3f2f1; border-top: 1px solid #e1dfdd; display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+  .ac-btn {
+    padding: 6px 14px; border-radius: 2px; font-size: 12px;
+    font-weight: 600; cursor: pointer; border: 1px solid transparent; font-family: inherit;
+    transition: all 0.1s ease;
+  }
+  .ac-btn-primary { background: #0f3460; color: #fff; }
+  .ac-btn-primary:hover { background: #14437a; }
+  .ac-btn-secondary { background: #fff; border: 1px solid #8a8886 !important; color: #323130; }
+  .ac-btn-secondary:hover { background: #f3f2f1; }
+
+  /* STATUS BADGES */
+  .status {
+    display: inline-block; padding: 3px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .status-assigned { background: #e0f0ff; color: #0066cc; border: 1px solid #b3d7ff; }
+  .status-inprogress { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+  .status-onhold { background: #fde2e2; color: #c00; border: 1px solid #f9bcbc; }
+  .status-waiting { background: #f0e6ff; color: #6600cc; border: 1px solid #d9bfff; }
+  .status-complete { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+
+  /* TOC */
+  #toc .toc-list { list-style: none; padding-left: 0; }
+  #toc .toc-list li { margin-bottom: 8px; }
+  #toc .toc-list a {
+    color: var(--accent); text-decoration: none; font-size: 15px;
+    display: flex; align-items: center; gap: 10px; font-weight: 600;
+  }
+  #toc .toc-list a:hover { color: var(--primary); text-decoration: underline; }
+  #toc .toc-num { color: var(--muted); font-size: 13px; min-width: 30px; font-family: monospace; font-weight: bold; }
+  #toc .toc-sub { padding-left: 30px; margin-top: 4px; margin-bottom: 12px !important; }
+  #toc .toc-sub a { font-size: 13.5px; color: var(--muted); font-weight: normal; }
+
+  /* SECURITY MATRIX */
+  .matrix-responsive { overflow-x: auto; margin: 24px 0; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+  .matrix-table { width: 100%; border-collapse: collapse; margin: 0; font-size: 13px; min-width: 700px; }
+  .matrix-table th, .matrix-table td { border: 1px solid var(--border); padding: 12px 14px; text-align: center; }
+  .matrix-table th { background: var(--primary); color: #fff; font-weight: 600; }
+  .matrix-table th:first-child, .matrix-table td:first-child { text-align: left; font-weight: 600; background: #fafbfc; width: 220px; }
+  .matrix-table .yes { color: #16a34a; font-size: 16px; font-weight: bold; }
+  .matrix-table .no { color: #dc2626; font-size: 16px; font-weight: bold; }
+  .matrix-table .cond { color: #d97706; font-size: 14px; font-weight: 600; background: #fffbeb; }
+
+  /* ROADMAP */
+  .roadmap { display: flex; gap: 0; margin: 32px 0; position: relative; }
+  .roadmap::before {
+    content: ''; position: absolute; top: 28px; left: 0; right: 0;
+    height: 4px; background: var(--border); z-index: 0;
+  }
+  .phase {
+    flex: 1; text-align: center; padding: 0 16px; position: relative; z-index: 1;
+  }
+  .phase-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px; margin: 0 auto 18px; border: 4px solid var(--surface);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+  }
+  .phase-circle.current { background: var(--accent2); color: #fff; }
+  .phase-circle.future1 { background: var(--accent); color: #fff; }
+  .phase-circle.future2 { background: var(--primary); color: #fff; }
+  .phase-circle.future3 { background: var(--muted); color: #fff; }
+  .phase h4 { font-size: 15px; color: var(--primary); margin-bottom: 12px; font-weight: 700; }
+  .phase ul { list-style: none; font-size: 13px; color: #445; line-height: 1.8; padding-left: 0; text-align: left; display: inline-block; }
+  .phase ul li { position: relative; padding-left: 14px; margin-bottom: 6px; }
+  .phase ul li::before { content: '▪'; color: var(--accent); position: absolute; left: 0; top: 0; }
+
+  /* PRINCIPLE CARDS */
+  .principle {
+    display: flex; gap: 18px; align-items: flex-start; padding: 20px;
+    background: var(--surface); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+  .principle:last-child { margin-bottom: 0; }
+  .principle-icon { font-size: 26px; flex-shrink: 0; line-height: 1; background: #e8f4ff; padding: 10px; border-radius: 8px; color: var(--accent); }
+  .principle-body h4 { margin: 0 0 6px; font-size: 16px; color: var(--primary); font-weight: 700; }
+  .principle-body p { margin: 0; font-size: 14px; color: #445; line-height: 1.6; }
+
+  /* SECTION LABELS & DETAILS */
+  .tech-meta-box {
+    background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin: 16px 0 24px;
+  }
+  .tech-meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 13.5px; }
+  .tech-meta-item strong { color: var(--primary); }
+
+  /* FOOTER */
+  .doc-footer {
+    background: var(--primary); color: rgba(255,255,255,0.6); padding: 24px 60px;
+    font-size: 13px; display: flex; justify-content: space-between; gap: 20px; border-top: 2px solid var(--accent2);
+  }
+
+  /* RESPONSIVE MEDIA QUERIES */
+  @media (max-width: 992px) {
+    body { flex-direction: column; }
+    #mobile-header { display: flex; }
+    #sidebar {
+      transform: translateX(-100%);
+      top: 54px; height: calc(100vh - 54px); min-height: auto;
+      width: 100%; max-width: 300px;
+      box-shadow: 4px 0 15px rgba(0,0,0,0.15);
+    }
+    #sidebar.open { transform: translateX(0); }
+    #sidebar .logo { display: none; }
+    #main { margin-left: 0; max-width: 100%; padding-top: 54px; }
+    .section { padding: 40px 20px; }
+    #cover { padding: 100px 20px 60px; min-height: auto; }
+    #cover h1 { font-size: 38px; }
+    #cover .cover-sub { font-size: 16px; }
+    #cover .cover-meta { gap: 20px; margin-top: 32px; }
+    .card-grid-2, .card-grid-3, .card-grid-4 { grid-template-columns: 1fr; }
+    .roadmap { flex-direction: column; gap: 32px; }
+    .roadmap::before { left: 26px; top: 0; bottom: 0; width: 4px; height: auto; }
+    .phase { text-align: left; padding-left: 72px; }
+    .phase-circle { margin: 0; position: absolute; left: 0; top: 0; }
+    .phase ul { display: block; }
+    .doc-footer { padding: 24px 20px; flex-direction: column; text-align: center; gap: 10px; }
+  }
+
+  @media print {
+    #sidebar, #mobile-header { display: none; }
+    #main { margin-left: 0; max-width: 100%; padding-top: 0; }
+    .section { break-inside: avoid; page-break-inside: avoid; padding: 30px 0; }
+    .card, .diagram-box, .wireframe, .table-responsive, .code-block, .adaptive-card { break-inside: avoid; page-break-inside: avoid; }
+    body { background: #fff; color: #000; }
+  }
+</style>
+</head>
+<body>
+
+<div id="mobile-header">
+  <h2>TeamsDash</h2>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">&#9776;</button>
+</div>
+
+<nav id="sidebar">
+  <div class="logo">
+    <h2>TeamsDash</h2>
+    <p>Enterprise Implementation Blueprint</p>
+  </div>
+  <nav id="sidebarNav">
+    <div class="section-label">Document Front</div>
+    <a href="#cover">Cover Page</a>
+    <a href="#toc">Table of Contents</a>
+    <div class="section-label">Volume 1: User Manual</div>
+    <a href="#user-guide">End-User Operational Guide</a>
+    <div class="section-label">Volume 2: Architecture</div>
+    <a href="#exec-summary">Executive Summary</a>
+    <a href="#solution-arch">Solution Architecture</a>
+    <a href="#architecture-principles">Architectural Principles</a>
+    <a href="#data-model">SharePoint Data Model</a>
+    <a href="#ticket-assignment">Ticket Assignment Logic</a>
+    <a href="#workload">Workload Management</a>
+    <a href="#teams-design">Microsoft Teams Design</a>
+    <a href="#adaptive-card">Adaptive Card Specification</a>
+    <a href="#pbi-architecture">Power BI Architecture</a>
+    <a href="#security-arch">Security &amp; RLS Model</a>
+    <a href="#governance">Governance &amp; ALM</a>
+    <div class="section-label">Volume 3: Build Guide</div>
+    <a href="#build-sharepoint">1. SharePoint Provisioning</a>
+    <a href="#build-canvas">2. Canvas App Construction</a>
+    <a href="#build-automate">3. Power Automate Workflow</a>
+    <a href="#build-powerbi">4. Power BI Modeling &amp; DAX</a>
+    <a href="#performance">5. Performance Optimization</a>
+    <a href="#roadmap">Future Enhancements</a>
+  </nav>
+</nav>
+
+<div id="main">
+
+<section id="cover">
+  <div class="cover-badge">Enterprise Solution Design Document &amp; Build Manual</div>
+  <h1>Teams<span>Dash</span></h1>
+  <div class="cover-sub">Enterprise Ticket Tracking, Team Assignment, Capacity Management, Microsoft Teams Collaboration &amp; Analytics Platform</div>
+  <div class="cover-meta">
+    <div class="meta-item"><strong>Document Version</strong>1.0.0 — Production Standard</div>
+    <div class="meta-item"><strong>Classification</strong>Confidential — Enterprise Internal</div>
+    <div class="meta-item"><strong>Target Audiences</strong>Sponsors, Architects, Engineers, Admins</div>
+    <div class="meta-item"><strong>Platform Stack</strong>Power Platform, SPO, MS Teams, Power BI</div>
+  </div>
+  <div class="cover-tags">
+    <span class="tag">SharePoint Online</span>
+    <span class="tag">Power Apps Canvas</span>
+    <span class="tag">Power Automate Cloud Flows</span>
+    <span class="tag">Microsoft Teams Graph Integration</span>
+    <span class="tag">Power BI Semantic Models</span>
+    <span class="tag">Interactive Adaptive Cards</span>
+    <span class="tag">Row-Level Security (RLS)</span>
+  </div>
+</section>
+
+<section id="toc" class="section">
+  <div class="section-header">
+    <div class="section-number">Document Navigation</div>
+    <h2>Table of Contents</h2>
+  </div>
+  <div class="card-grid card-grid-2">
+    <div>
+      <h4 style="margin-bottom:12px; color:var(--primary);">Part I: Framework &amp; Guide</h4>
+      <ul class="toc-list">
+        <li><a href="#user-guide"><span class="toc-num">01</span> Volume 1: End-User Operational Playbooks</a></li>
+        <li class="toc-sub"><a href="#user-guide">Manager, Assignor, and Analyst Operational Flows</a></li>
+        <li><a href="#exec-summary"><span class="toc-num">02</span> Volume 2: Executive Summary</a></li>
+        <li class="toc-sub"><a href="#exec-summary">Problem Statement, Success Metrics &amp; Scope Boundary</a></li>
+        <li><a href="#solution-arch"><span class="toc-num">03</span> Solution Architecture</a></li>
+        <li class="toc-sub"><a href="#solution-arch">End-to-End Enterprise Component Diagram</a></li>
+        <li><a href="#architecture-principles"><span class="toc-num">04</span> Architectural Principles</a></li>
+        <li><a href="#data-model"><span class="toc-num">05</span> SharePoint Data Model</a></li>
+        <li class="toc-sub"><a href="#data-model">7-List Normalized Schemas &amp; Comprehensive ERD</a></li>
+        <li><a href="#ticket-assignment"><span class="toc-num">06</span> Ticket Assignment Logic</a></li>
+        <li><a href="#workload"><span class="toc-num">07</span> Workload Management Engine</a></li>
+        <li><a href="#teams-design"><span class="toc-num">08</span> Microsoft Teams Collaboration Architecture</a></li>
+        <li><a href="#adaptive-card"><span class="toc-num">09</span> Interactive Adaptive Card Specification</a></li>
+        <li><a href="#pbi-architecture"><span class="toc-num">10</span> Power BI Analytics &amp; Reporting Model</a></li>
+        <li><a href="#security-arch"><span class="toc-num">11</span> Layered Security Architecture &amp; Matrix</a></li>
+        <li><a href="#governance"><span class="toc-num">12</span> Governance Framework, ALM &amp; Environments</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 style="margin-bottom:12px; color:var(--primary);">Part II: Technical Engineering Blueprints</h4>
+      <ul class="toc-list">
+        <li><a href="#build-sharepoint"><span class="toc-num">13</span> Volume 3: Step 1 — SharePoint Provisioning Blueprint</a></li>
+        <li class="toc-sub"><a href="#build-sharepoint">Complete List Schemas, Columns &amp; Index Targets</a></li>
+        <li><a href="#build-canvas"><span class="toc-num">14</span> Volume 3: Step 2 — Power Apps Canvas Build Manual</a></li>
+        <li class="toc-sub"><a href="#build-canvas">8 Screen Wireframes, Form Expressions &amp; Navigation Logic</a></li>
+        <li><a href="#build-automate"><span class="toc-num">15</span> Volume 3: Step 3 — Power Automate Automation Engine</a></li>
+        <li class="toc-sub"><a href="#build-automate">Cloud Flow Logic, JSON Layouts &amp; Graph Triggers</a></li>
+        <li><a href="#build-powerbi"><span class="toc-num">16</span> Volume 3: Step 4 — Power BI Modeling &amp; DAX Library</a></li>
+        <li class="toc-sub"><a href="#build-powerbi">Star Schema Setup, Power Query Folding &amp; Explicit DAX</a></li>
+        <li><a href="#performance"><span class="toc-num">17</span> Volume 3: Step 5 — Performance &amp; Threshold Tuning</a></li>
+        <li><a href="#roadmap"><span class="toc-num">18</span> Appendix: Evolutionary Platform Roadmap</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="user-guide" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 1</div>
+    <h2>End-User Operational Guide</h2>
+  </div>
+  <p>This section serves as a non-technical guide for operational teams to execute daily tasks within the TeamsDash platform. This system connects operational tracking with real-time Microsoft Teams workspace collaboration.</p>
+  
+  <h3>1. Manager Playbook (Platform Administration &amp; Auditing)</h3>
+  <p>Managers maintain absolute administrative authority over reference configurations, platform mappings, user scopes, and system parameters.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>User Access &amp; Governance Provisioning</h4>
+        <p>To grant system access to a team member, navigate to the <strong>Administration Dashboard</strong>. Select the <strong>User Provisioning</strong> pane. Enter the user's M365 Email or LLID. The system calls the Office 365 Users connector to resolve their Identity metadata. Assign their functional application role (<em>Manager, Assignor, Analyst</em>) and set status to active. Click <strong>Save Configuration</strong> to commit the record to the master list.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Client &amp; Platform Relational Mapping</h4>
+        <p>When onboarding a new enterprise client or a platform tool: Select <strong>Client Management</strong> or <strong>Platform Configuration</strong>. Create the entry. Then, move to <strong>Account-Platform Mapping</strong> to bind them together. This ensures that downstream operators can only select valid, configured account-platform pairings.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Eligibility Matrix Binding</h4>
+        <p>Navigate to <strong>Access Mappings</strong> to link an Analyst to an authorized Account and Platform combination. Analysts cannot view or accept assignments for tickets outside of their established eligibility vectors.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>2. Assignor Playbook (Intake Routing &amp; Load Balancing)</h3>
+  <p>Assignors process the incoming queue, review resource allocations, and route tickets to eligible analysts.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Queue Intake &amp; Client Filtering</h4>
+        <p>Open the <strong>Ticket Assignment Screen</strong>. The list displays all unassigned tickets. Select an unassigned item; the interface loads the required account and platform metadata.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Real-Time Capacity Balancing</h4>
+        <p>Review the <strong>Team Workload Grid</strong> on the right pane. This grid shows each active Analyst alongside their aggregate open ticket count and capacity calculation. This helps distribute items evenly and avoid overloading individual analysts.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Targeted Routing Execution</h4>
+        <p>The <strong>Request Lead</strong> dropdown filters dynamically to show only analysts who hold an active configuration mapping for the selected client and platform. Select an eligible Analyst, attach any required <em>Additional Members</em>, input initial tracking notes, and click <strong>Finalize Assignment</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>3. Analyst Playbook (Ticket Lifecycle &amp; Teams Execution)</h3>
+  <p>Analysts process assignments, track metrics, and collaborate within dedicated workspaces.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Workspace Discovery &amp; Notification Onboarding</h4>
+        <p>When an assignor routes a ticket to you, you receive a direct email alert and an adaptive notification in Microsoft Teams. Simultaneously, a dedicated Microsoft Teams group chat is automatically created for that ticket, containing you, any designated additional members, and the management team.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Contextual Updates via Teams Adaptive Cards</h4>
+        <p>Inside the dedicated group chat, an interactive <strong>Adaptive Card</strong> is pinned to the top. As work progresses, update metrics like <em>Status, Campaign Count, or Hours Logged</em> directly within this card and click <strong>Submit Update</strong>. This syncs your progress back to the master database without requiring you to switch windows.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Canvas App Deep Linking &amp; Resolution</h4>
+        <p>For advanced actions, use the link on the Adaptive Card to jump directly to the <strong>Ticket Detail Screen</strong> in the Canvas App. Once work is concluded, shift the status to <strong>Completed</strong>. This records the final timestamp and initiates the operational review workflow.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">💡</div>
+    <div class="callout-body">
+      <strong>Operational Best Practice</strong>
+      <p>Analysts should execute daily tasks directly within the Teams interface using the pinned Adaptive Cards. The main Power Apps portal remains available for full database searches, complex filtering, and accessing personalization dashboards.</p>
+    </div>
+  </div>
+</section>
+
+<section id="exec-summary" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 02</div>
+    <h2>Executive Summary</h2>
+  </div>
+  <p>This design blueprint provides the complete system architecture and configuration patterns for TeamsDash. This solution replaces error-prone, offline spreadsheet file management with a secure, governed tracking and collaboration platform.</p>
+  
+  <div class="card-grid card-grid-2">
+    <div class="card accent-danger">
+      <h4>Legacy Vulnerabilities (Excel State)</h4>
+      <p>Manual data entry with zero structural lookup enforcement. Lacks concurrency locks, real-time workload visibility, or reliable audit trails. Distribution depends on ad-hoc messaging, and reporting requires manual aggregation, resulting in data latency and delivery risk.</p>
+    </div>
+    <div class="card accent-green">
+      <h4>Target Architecture (TeamsDash State)</h4>
+      <p>A relational tracking system built on low-code infrastructure. Features role-based navigation guards, automated workspace lifecycle generation, and interactive telemetry syncing via Microsoft Teams. Delivers low-latency analytics secured by Row-Level Security (RLS).</p>
+    </div>
+  </div>
+
+  <div class="tech-meta-box">
+    <div class="tech-meta-title" style="font-weight:700; color:var(--primary); margin-bottom:8px;">Platform Volumetrics &amp; Scalability Targets</div>
+    <div class="tech-meta-grid">
+      <div class="tech-meta-item"><strong>Active Headcount:</strong> 15 – 30 Concurrent Multi-Role Operators</div>
+      <div class="tech-meta-item"><strong>Client Portfolio Scope:</strong> 50 – 100 Explicit Enterprise Accounts</div>
+      <div class="tech-meta-item"><strong>Transactional Throughput:</strong> 500 – 1,000 New Tickets Monthly</div>
+      <div class="tech-meta-item"><strong>Historical Longevity Target:</strong> 5+ Years Operating Context (&gt;60,000 Records)</div>
+    </div>
+  </div>
+
+  <h3>Enterprise Metrics Matrix</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Strategic Goal</th>
+          <th>Target Baseline Metric</th>
+          <th>Measurement Methodology</th>
+          <th>Platform Guardrail Constraint</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Routing Automation Latency</td>
+          <td>&lt; 180 Seconds Total Execution Time</td>
+          <td>Power Automate Run-History Tracking Logs</td>
+          <td>Graph API Throttling API limits (&lt;10k requests/min)</td>
+        </tr>
+        <tr>
+          <td>Telemetry Refresh Freshness</td>
+          <td>&lt; 60 Minutes Data Latency Window</td>
+          <td>Power BI Premium Scheduled Refresh Triggers</td>
+          <td>Maximum 8 Refreshes daily on Pro / 48 on Premium</td>
+        </tr>
+        <tr>
+          <td>Workspace Creation Delivery</td>
+          <td>100.00% Automated Provisioning Stability</td>
+          <td>Cloud Flow Fail-Safe Try/Catch Engine Blocks</td>
+          <td>Handling invalid character syntax within Channel Names</td>
+        </tr>
+        <tr>
+          <td>Data Lookup Enforcement</td>
+          <td>0.00% Form Entry Misalignment Errors</td>
+          <td>Power Apps Declarative Cascade Conditional Filters</td>
+          <td>Enforcement of strict delegation limits (&lt;2,000 items)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="solution-arch" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 03</div>
+    <h2>Solution Architecture</h2>
+  </div>
+  <p>The platform uses a layered, cloud-native architecture contained within the corporate Microsoft 365 tenant boundary. This design isolates data storage, orchestration, and interface layout layers while using Azure Active Directory (Microsoft Entra ID) for single sign-on authentication and data security.</p>
+
+  <div class="diagram-box">
+    <div class="diagram-title">System Architecture Blueprint</div>
+    <div class="mermaid">
+graph TB
+    subgraph Identity ["🔒 Azure Active Directory Security Boundary"]
+        AAD[Entra ID Authentication & Role Assignment]
+    end
+
+    subgraph Client ["📱 Presentation Layer (M365 App Workspace)"]
+        PA_APP[Canvas Power App UI Engine]
+        TM_WORKSPACE[Microsoft Teams Group Workspace]
+        PBI_WORKSPACE[Power BI Reporting workspace]
+    end
+
+    subgraph Logic ["⚙️ Process Orchestration Layer"]
+        PA_FLOW_CREATE[Flow 1: Intake Lifecycle Engine]
+        PA_FLOW_UPDATE[Flow 2: Telemetry Synchronization Sync]
+    end
+
+    subgraph Storage ["🗄️ Relational Data Layer"]
+        SPO_SITE[SharePoint Online Secure Site Hub]
+        L1[List 1: Team Members]
+        L2[List 2: Platforms]
+        L3[List 3: Account Mappings]
+        L4[List 4: Access Profiles]
+        L5[List 5: Security Roles]
+        L6[List 6: Transactional Tickets]
+        L7[List 7: Saved Analytics View JSON]
+    end
+
+    subgraph Analytics ["📈 Semantic Analysis Layer"]
+        PBI_PQ[Power Query Schema Folded Views]
+        PBI_MODEL[Star Schema Semantic Model Data Ingestion]
+        PBI_RLS[DAX Security Row Level Controls]
+    end
+
+    %% Security Control Paths
+    AAD -.->|Governs Identity| PA_APP
+    AAD -.->|Secures Access| SPO_SITE
+    AAD -.->|Enforces RLS| PBI_RLS
+
+    %% Core Data Interactions
+    PA_APP <-->|1. Delegable OData Queries| SPO_SITE
+    PA_APP --->|2. Trigger Execution JSON| Logic
+    Logic --->|3. Direct Microsoft Graph Actions| TM_WORKSPACE
+    Logic <--->|4. State Variable Sync Updates| L6
+
+    %% Storage Structure Mapping
+    SPO_SITE ---> L1 & L2 & L3 & L4 & L5 & L6 & L7
+    L6 --->|5. Scheduled OData Data Ingestion| PBI_PQ
+    L1 & L2 & L3 & L4 --->|6. Dimensions Sync| PBI_PQ
+    
+    %% Analytics Flow
+    PBI_PQ ---> PBI_MODEL
+    PBI_MODEL ---> PBI_RLS
+    PBI_RLS ---> PBI_WORKSPACE
+
+    style Identity fill:#ffe0e0,stroke:#cc0000,stroke-width:2px
+    style Client fill:#e8f4ff,stroke:#0f3460,stroke-width:2px
+    style Logic fill:#f0e8ff,stroke:#6600cc,stroke-width:2px
+    style Storage fill:#fff8e0,stroke:#f5a623,stroke-width:2px
+    style Analytics fill:#ffe8f0,stroke:#cc0066,stroke-width:2px
+graph TB
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>System Layer Component</th>
+          <th>Underlying Core Technology</th>
+          <th>Architectural Target Responsibility</th>
+          <th>Connector Profile Strategy</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Client Interface Engine</strong></td>
+          <td>Power Apps Canvas Studio (Responsive Form Factor)</td>
+          <td>Manages state machine logic, handles user input validation, and renders contextual view states.</td>
+          <td>Standard SharePoint OData V2 Protocol Direct Connector</td>
+        </tr>
+        <tr>
+          <td><strong>Data Storage Ledger</strong></td>
+          <td>SharePoint Online Relational Lists Infrastructure</td>
+          <td>Maintains normalized reference entities, stores transactional tracking rows, and preserves history log records.</td>
+          <td>Implicit Native Microsoft Tenant Security Framework</td>
+        </tr>
+        <tr>
+          <td><strong>Asynchronous Automation Hub</strong></td>
+          <td>Power Automate Cloud Workflows Engine</td>
+          <td>Orchestrates Teams chat lifecycle events, provisions channels, posts messages, and manages state machine changes.</td>
+          <td>Hybrid Webhook Listener &amp; M365 Standard Hub Connections</td>
+        </tr>
+        <tr>
+          <td><strong>Enterprise Telemetry Model</strong></td>
+          <td>Power BI Semantic Enterprise Datasets Cloud Engine</td>
+          <td>Transforms data schemas via query folding, executes calculations via DAX expressions, and runs security filtering via user profiles.</td>
+          <td>Direct Service Cloud Access Connector Model</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="architecture-principles" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 04</div>
+    <h2>Architectural Principles</h2>
+  </div>
+  <p>The system architecture adheres strictly to engineering principles designed to maximize stability, guarantee scalability, and reduce maintenance overhead.</p>
+
+  <div class="principle">
+    <div class="principle-icon">⚙️</div>
+    <div class="principle-body">
+      <h4>Configuration Over Customization</h4>
+      <p>Operational modifications—such as adding clients, configuring platform types, updating personnel matrix allocations, or modifying system operational roles—are executed via the front-end interface. These actions alter database parameters without requiring updates to application formulas, workflow files, or semantic code blocks.</p>
+    </div>
+  </div>
+
+  <div class="principle">
+    <div class="principle-icon">🔒</div>
+    <div class="principle-body">
+      <h4>Layered Security by Design</h4>
+      <p>Data validation is enforced at multiple layers. Interface boundaries hide restricted fields from standard user profiles. Automation flows execute tasks under secure service accounts, and data visibility is restricted via row-level controls, ensuring a robust and audited security perimeter.</p>
+    </div>
+  </div>
+
+  <div class="principle">
+    <div class="principle-icon">🏎️</div>
+    <div class="principle-body">
+      <h4>Delegation and Scale-First Compliance</h4>
+      <p>All database queries are structured around delegable OData filter patterns. Database processing occurs server-side within the SharePoint service tier, preventing performance degradation and scale limitations as volume approaches enterprise threshold barriers.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-success">
+    <div class="callout-body">
+      <strong>Architectural Recommendation</strong>
+      <p>Maintain clear database boundaries by storing transactional tracking records separately from operational configuration properties. Modifying data fields must be handled using declarative interface statements to ensure queries remain fully compatible with data delegation requirements.</p>
+    </div>
+  </div>
+</section>
+
+<section id="data-model" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 05</div>
+    <h2>SharePoint Data Model</h2>
+  </div>
+  <p>The platform relies on seven normalized lists within SharePoint Online to manage system configurations and capture transaction events. Relationships are defined using explicit identifier fields to maintain relational integrity across the storage layer.</p>
+
+  <div class="diagram-box">
+    <div class="diagram-title">SharePoint Entity Relationship Diagram (ERD)</div>
+    <div class="mermaid">
+erDiagram
+    TEAM_MEMBERS {
+        int TeamMemberID PK "Indexed Number"
+        string Title "FullName - Text"
+        string LLID UK "Unique Text Identifier"
+        string Email "User Account Email"
+        string Team "Choice Selection Vector"
+        bool ActiveStatus "Soft Delete State Boolean"
+        date TeamJoiningDate "DateTime Ledger Timestamp"
+    }
+
+    PLATFORMS {
+        int PlatformID PK "Indexed Number"
+        string Title "PlatformName - Unique Text"
+        bool ActiveStatus "Soft Delete Target Indicator"
+    }
+
+    ACCOUNT_PLATFORM_MAPPING {
+        int MappingID PK "Indexed Number"
+        string Title "AccountName - Text Group"
+        int PlatformNameLookup FK "Lookup ID Target Reference"
+        bool ActiveStatus "Active Deployment Guardrail"
+    }
+
+    ACCESS_MAPPING {
+        int MappingID PK "Indexed Number"
+        int TeamMemberLookupID FK "Lookup Reference Member"
+        int AccountMappingLookupID FK "Lookup Reference Account"
+        bool ActiveStatus "Eligibility Switch Indicator"
+    }
+
+    TEAM_MEMBER_ROLES {
+        int RoleID PK "Indexed Number"
+        int TeamMemberLookupID FK "Lookup Identification ID"
+        string RoleChoice "Choice: Manager/Assignor/Analyst"
+        bool ActiveStatus "Role State Flag"
+    }
+
+    TICKETS {
+        int TicketID PK "System Auto Counter Number"
+        string Title "TicketName Description Text"
+        string TicketLink "External Reference Hyperlink"
+        int AccountMappingID FK "Lookup Field Value ID"
+        int PlatformLookupID FK "Lookup Field Engine ID"
+        int CampaignCount "Granular Tracking Integer"
+        string InsertionOrders "Large Character Memo Field"
+        int RequestLeadLookupID FK "User Target Link Reference ID"
+        string AdditionalMembersJSON "JSON String User Collection"
+        string TicketStatus "Choice Workflow Operational Phase"
+        datetime DateCreated "System Managed Created Stamp"
+        date DueDate "Operational Milestone Target"
+        datetime CompletedDate "Resolution Processing Field"
+        float HoursLoggedByAssignor "Capacity Metric Measure"
+        datetime InProgressTimestamp "Flow Capture Tracker Field"
+        datetime CompleteTimestamp "Flow Audit Performance Point"
+        string TeamsChatID "Graph Integration Communication Key"
+        string TeamsChatLink "Direct Workspace Anchor Bridge"
+        datetime LastUpdated "System Modified State Tracker"
+    }
+
+    SAVED_REPORTS {
+        int ReportID PK "Primary Auto Index"
+        string Title "Saved View Label Report Name"
+        int CreatedByLookupID FK "User Creation Target Entry"
+        string FilterJSON "Complex Struct Configuration Blueprint"
+        string MetricsJSON "Analytical Target Values Specification"
+        bool IsShared "Public Access Dashboard Toggle"
+        datetime CreatedDate "Metadata Registration Stamp"
+    }
+
+    TEAM_MEMBERS ||--o{ ACCESS_MAPPING : "Authorization Target"
+    TEAM_MEMBERS ||--o{ TEAM_MEMBER_ROLES : "Role Profiling Link"
+    TEAM_MEMBERS ||--o{ TICKETS : "Assigned Responsibility"
+    TEAM_MEMBERS ||--o{ SAVED_REPORTS : "Dashboard Ownership"
+    PLATFORMS ||--o{ ACCOUNT_PLATFORM_MAPPING : "Structural Composition"
+    ACCOUNT_PLATFORM_MAPPING ||--o{ ACCESS_MAPPING : "Context Boundaries"
+    ACCOUNT_PLATFORM_MAPPING ||--o{ TICKETS : "Operational Categorization"
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-body">
+      <strong>Enterprise Retention Policy: Soft Delete Constraint</strong>
+      <p>No account details or user reference rows may be hard-deleted from this storage model. Deleting configuration elements corrupts tracking historical data, invalidates metrics, and disrupts query results. System retirement actions must use the toggle flags to handle data logic appropriately.</p>
+    </div>
+  </div>
+</section>
+
+<section id="ticket-assignment" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 06</div>
+    <h2>Ticket Assignment Logic</h2>
+  </div>
+  <p>The routing engine handles matching incoming tracking records with qualified support team members. It uses a structured selection process to prevent misallocating items to uncertified or unauthorized resources.</p>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Cascading Filter and Dynamic Selection Workflow</div>
+    <div class="mermaid">
+graph TD
+    A[Operator Launches Form Engine State] --> B[Step 1: Selection of Corporate Account Target]
+    B --> C{Has Account Changed or Reset?}
+    C -->|Yes Reset States| D[Clear Active Selected Client & Purge Downstream Variables]
+    C -->|No Update Context| E[Step 2: Selection of Active Associated Tool Platform]
+    E --> F{Has Platform Changed or Reset?}
+    F -->|Yes Clear Targets| G[Clear Selected Operators & Purge Dynamic Selection Collections]
+    F -->|No Proceed Query| H[Step 3: Execute OData Search Query against Access Matrix Profiles]
+    
+    H --> I[Filter Criteria: AccessMapping where Account = Selected AND Platform = Selected AND Active = True]
+    I --> J[Step 4: Return Filtered Output Records as Selectable Collection]
+    J --> K[Step 5: Populate Request Lead Selector Input Interface Control]
+    
+    A --> L[Parallel Execution Track: Fetch Global Active Context Database]
+    L --> M[Step 6: Query Global Team Member Database where Active = True]
+    M --> N[Step 7: Populate Additional Support Members Multi-Selector Dropdown Input]
+
+    style C fill:#fff8e0,stroke:#f5a623
+    style F fill:#fff8e0,stroke:#f5a623
+    style I fill:#e8f4ff,stroke:#0f3460
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">ℹ️</div>
+    <div class="callout-body">
+      <strong>Relational Clearing Requirement</strong>
+      <p>Modifying either the target account or the specified platform validation controls automatically clears downstream selection variables. This control rule prevents assigning tickets with conflicting account and platform configurations.</p>
+    </div>
+  </div>
+</section>
+
+<section id="workload" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 07</div>
+    <h2>Workload Management Engine</h2>
+  </div>
+  <p>The platform provides continuous visibility into resource allocation across teams by dynamically calculating operational tracking metrics. This metrics model tracks volume levels against established performance limits.</p>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Analyst Workload Balancing Calculation Blueprint</div>
+    <div class="mermaid">
+graph LR
+    subgraph CalculationEngine ["🧮 Telemetry Aggregation Formula Pattern"]
+        direction TB
+        T_OPEN[Count: Tickets where Status != 'Completed' AND Status != 'On Hold']
+        T_ACTIVE[Count: Tickets where Status == 'In Progress']
+        CAP_LIMIT[Constant Limit Value: 5 Open Assignments Base Maximum]
+        
+        UTIL_CALC["Utilization Calculation: (Total Open Assignments / Baseline Maximum Capacity) * 100"]
+    end
+
+    subgraph Allocations ["📊 Current Live Team Allocation Mapping Examples"]
+        direction TB
+        AKASH["👤 Akash Malik<br/>• Open: 2 Tickets<br/>• Active: 1 Ticket<br/>• Utilization Load: 40%"]
+        SARAH["👤 Sarah Jenkins<br/>• Open: 5 Tickets<br/>• Active: 3 Tickets<br/>• Utilization Load: 100%"]
+        JOHN["👤 John Doe<br/>• Open: 1 Ticket<br/>• Active: 1 Ticket<br/>• Utilization Load: 20%"]
+    end
+
+    T_OPEN & T_ACTIVE & CAP_LIMIT ---> UTIL_CALC
+    UTIL_CALC -.->|Evaluates Real-Time Allocation| Allocations
+
+    style AKASH fill:#e6fff5,stroke:#16c79a
+    style SARAH fill:#ffe8ec,stroke:#e94560,stroke-width:2px
+    style JOHN fill:#e8f4ff,stroke:#0f3460
+    </div>
+  </div>
+
+  <p>Resource utilization levels are color-coded to guide distribution decisions: Green indicates available allocation (0–79%), Yellow signals optimal capacity thresholds (80–100%), and Red alerts assignors to overallocation conditions (&gt;100%), allowing the team to adjust balancing rules effectively.</p>
+</section>
+
+<section id="teams-design" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 08</div>
+    <h2>Microsoft Teams Design</h2>
+  </div>
+  <p>The collaboration engine automatically generates workspaces for assigned items. Rather than managing ad-hoc emails or decentralized chat threads, each tracking event provisions a context-specific communication channel.</p>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Automated Communication Workspace Lifecycle</div>
+    <div class="mermaid">
+sequenceDiagram
+    autonumber
+    participant App as Canvas App Data Entry
+    participant Flow as Power Automate Automation Engine
+    participant Graph as Microsoft Graph API
+    participant Teams as Microsoft Teams Client UI
+
+    App->>Flow: Commit Transaction Event & Invoke Automated Lifecycle
+    Flow->>Graph: Query Target Operator Identifiers & Validation Profiles
+    Graph-->>Flow: Return Account Object Information
+    Flow->>Teams: Provision Dedicated Group Workspace Chat Window
+    Note over Teams: Naming Format Rule:<br/>Ticket: [Ticket Name] | [Account] | [YYYY-MM-DD]
+    Teams-->>Flow: Return Communication Thread Identifier Key (ChatID)
+    Flow->>Teams: Add Identified Operators, Specified Members & Management Group
+    Flow->>Teams: Deliver Interactive Functional Welcome Message Payload
+    Flow->>Teams: Transmit Formatted Interactive Adaptive Card Component
+    Flow->>Teams: Pin Interactive Component to Top Interface Workspace Window
+    Flow-->>App: Sync Generated Reference Communication URL Coordinates
+    Note over App: Update Transaction Record:<br/>Save ChatID & Direct Connection Link
+    </div>
+  </div>
+
+  <div class="tech-meta-box">
+    <div class="tech-meta-title" style="font-weight:700; color:var(--primary); margin-bottom:8px;">Workspace Automation Protocol Standards</div>
+    <div class="tech-meta-grid">
+      <div class="tech-meta-item"><strong>Chat Structural Syntax:</strong> <code>Ticket: [Ticket Name] | [Account] | [Date Stamp]</code></div>
+      <div class="tech-meta-item"><strong>Maximum Membership Boundary:</strong> Includes Lead, Shared Context Team Members, and Monitoring Management Profiles</div>
+      <div class="tech-meta-item"><strong>Workspace Anchor Action:</strong> Cards are pinned to provide direct access to operational data controls</div>
+      <div class="tech-meta-item"><strong>Audit Ledger Integration:</strong> Communication links are stored within the main transaction record</div>
+    </div>
+  </div>
+</section>
+
+<section id="adaptive-card" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 09</div>
+    <h2>Adaptive Card Specification</h2>
+  </div>
+  <p>Interactive Adaptive Cards provide data input interfaces directly within conversation feeds. Operators can log effort metrics, adjust status attributes, or submit review comments without shifting out of the Microsoft Teams application layout.</p>
+
+  <div class="adaptive-card">
+    <div class="ac-header">
+      <h3>🎫 TeamsDash Ticket Control Terminal</h3>
+      <p>ID Reference: TKT-2026-89432 | Dynamic Context Monitor Block</p>
+    </div>
+    <div class="ac-body">
+      <div class="ac-row">
+        <div class="ac-label">Associated Client:</div>
+        <div class="ac-value" style="font-weight:bold;">Enterprise Client Group Alpha</div>
+      </div>
+      <div class="ac-row">
+        <div class="ac-label">Target Platform:</div>
+        <div class="ac-value">Google Marketing Ad Stack (DV360)</div>
+      </div>
+      <div class="ac-row">
+        <div class="ac-label">Current Phase Status:</div>
+        <div class="ac-value"><span class="status status-inprogress">In Progress</span></div>
+      </div>
+      <div class="ac-divider"></div>
+      
+      <label class="ac-label" style="display:block; margin-bottom:4px;">Modify Operational Status:</label>
+      <select class="ac-input">
+        <option>Assigned - Direct Allocation State</option>
+        <option selected>In Progress - Active Operations State</option>
+        <option>On Hold - Operational Block State</option>
+        <option>Waiting for POC Input - Dependency Hold</option>
+        <option>Completed - Production Resolution Final</option>
+      </select>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div>
+          <label class="ac-label" style="display:block; margin-bottom:4px;">Logged Hours Metric:</label>
+          <input type="number" class="ac-input" value="4.5" step="0.5">
+        </div>
+        <div>
+          <label class="ac-label" style="display:block; margin-bottom:4px;">Campaign Count:</label>
+          <input type="number" class="ac-input" value="12">
+        </div>
+      </div>
+
+      <label class="ac-label" style="display:block; margin-bottom:4px;">Context Progress Comments:</label>
+      <input type="text" class="ac-input" value="Primary tag implementation and confirmation validations finished." placeholder="Provide update logging remarks...">
+    </div>
+    <div class="ac-actions">
+      <button class="ac-btn ac-btn-secondary">🔗 Open Power Apps Record Portal</button>
+      <button class="ac-btn ac-btn-primary">💾 Commit Telemetry Sync</button>
+    </div>
+  </div>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Adaptive Card Telemetry Synchronization Pipeline</div>
+    <div class="mermaid">
+graph LR
+    A[Teams Interface Card Form Event] -->|1. Submit Form Action Execute Trigger| B[Power Automate Webhook Endpoint Integration Receiver]
+    B -->|2. Extract Form Value Parameters JSON| C[Validate State & Enforce Role Verification Layer]
+    C -->|3. Perform Direct OData List Patch Update| D[SharePoint Online: Tickets Transaction Base List]
+    D -->|4. Generate Synchronized State Confirmation JSON| E[Re-Render Current Adaptive Card Layout]
+    E -->|5. Push Updated Layout State to Active Communication Thread| F[Teams Interface Stream UI View Refreshed]
+
+    style A fill:#e8f4ff,stroke:#0f3460
+    style D fill:#fff8e0,stroke:#f5a623
+    style F fill:#e6fff5,stroke:#16c79a
+    </div>
+  </div>
+</section>
+
+<section id="pbi-architecture" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 10</div>
+    <h2>Power BI Analytics Model</h2>
+  </div>
+  <p>The corporate analytics engine reads directly from the cloud transactional ledger. This structural layout establishes a clear star schema framework to separate metrics data tracking from dimension categorization properties.</p>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Power BI Architecture Pipeline Structure</div>
+    <div class="mermaid">
+graph TD
+    subgraph Data Tier ["Storage Infrastructure"]
+        SPO[SharePoint Online Source Site Lists]
+    end
+    subgraph ETL Tier ["Power Query Transformation Engine"]
+        PQ_TRANS[Step-Folded Transformation Architecture]
+        PQ_PARAM[Data Parametrization Schema Engine]
+    end
+    subgraph Model Tier ["Semantic Analytical Data Model Configuration"]
+        F_TICKETS["Fact Table: Tickets Transactional Ledger"]
+        D_MEMBERS["Dimension Table: Team Members Configuration"]
+        D_PLATFORMS["Dimension Table: Platform Master Layout"]
+        D_ACC_MAP["Dimension Table: Client Accounts Reference"]
+        D_DATE["Dimension Table: Enterprise Calendar Context"]
+    end
+    subgraph Security Tier ["Enterprise Security Perimeter Tier"]
+        RLS_GOV[Dynamic DAX User Profile Filtering Row Level Security]
+    end
+    subgraph Presentation Tier ["Business Analytics Visualization Layer"]
+        DASH_EXEC[Executive Leadership Insights Interface]
+        DASH_OPER[Operational Queue Performance Interface]
+        DASH_BUILD[Self-Service Custom Query Layout Matrix]
+    end
+
+    SPO --->|1. Cloud Direct OData Connect Access| PQ_TRANS
+    PQ_TRANS --> PQ_PARAM
+    PQ_PARAM --->|2. Model Ingestion Rows| F_TICKETS
+    PQ_PARAM --->|3. Sync Structural Arrays| D_MEMBERS & D_PLATFORMS & D_ACC_MAP & D_DATE
+    
+    D_MEMBERS & D_PLATFORMS & D_ACC_MAP & D_DATE ===>|4. One-to-Many Cross Filter Constraints| F_TICKETS
+    F_TICKETS --->|5. Enforce Security Profiles| RLS_GOV
+    RLS_GOV --->|6. Secured Data Presentation Views| DASH_EXEC & DASH_OPER & DASH_BUILD
+
+    style Data Tier fill:#fff8e0,stroke:#f5a623
+    style ETL Tier fill:#f0e8ff,stroke:#6600cc
+    style Model Tier fill:#e8f4ff,stroke:#0f3460
+    style Security Tier fill:#ffe0e0,stroke:#cc0000
+    </div>
+  </div>
+
+  <p>This analytics strategy isolates calculation processing workloads from the presentation layer. The semantic definition model handles resource utilization metrics, target resolution calculations, and SLA status evaluations in real-time.</p>
+</section>
+
+<section id="security-arch" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 11</div>
+    <h2>Layered Security Architecture</h2>
+  </div>
+  <p>The platform implements a multi-layered security configuration framework. System access profiles restrict application features, menu groups, database transactions, and dashboard views based on authenticated operational roles.</p>
+
+  <h3>Enterprise Authorization Matrix</h3>
+  <div class="matrix-responsive">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th>Platform Function Group Module</th>
+          <th>Manager Role Scope</th>
+          <th>Assignor Role Scope</th>
+          <th>Analyst Role Scope</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Administration Configuration Board</strong></td>
+          <td class="yes">✔ Absolute Access Read/Write</td>
+          <td class="no">❌ Access Restricted Hiding UI</td>
+          <td class="no">❌ Access Restricted Hiding UI</td>
+        </tr>
+        <tr>
+          <td><strong>System Configuration Parameters Setup</strong></td>
+          <td class="yes">✔ Absolute Access Read/Write</td>
+          <td class="no">❌ Access Restricted Hiding UI</td>
+          <td class="no">❌ Access Restricted Hiding UI</td>
+        </tr>
+        <tr>
+          <td><strong>Routing Assignment Queue Actions</strong></td>
+          <td class="yes">✔ Absolute Access Read/Write</td>
+          <td class="yes">✔ Absolute Access Read/Write</td>
+          <td class="no">❌ View Only No Routing Allowed</td>
+        </tr>
+        <tr>
+          <td><strong>Transactional Item Registration Intake</strong></td>
+          <td class="yes">✔ Create/Read/Write Actions</td>
+          <td class="yes">✔ Create/Read/Write Actions</td>
+          <td class="yes">✔ Create/Read/Write Actions</td>
+        </tr>
+        <tr>
+          <td><strong>Granular Telemetry Status Updates</strong></td>
+          <td class="yes">✔ Absolute System Context Override</td>
+          <td class="yes">✔ Absolute System Context Override</td>
+          <td class="cond">⚠ Context Restrictions: Authorized Mapped Allocations Only</td>
+        </tr>
+        <tr>
+          <td><strong>Operational Performance View Insights</strong></td>
+          <td class="yes">✔ Enterprise-Wide Tracking Context</td>
+          <td class="yes">✔ Enterprise-Wide Tracking Context</td>
+          <td class="cond">⚠ Dynamic Filtering: Authorized Assignments Metric Scope Only</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Security profile validation boundaries are enforced across all integration touchpoints. Power Apps interfaces filter navigation controls, Power Automate processing routines validate event source triggers, and Power BI semantic rules apply Row-Level Security constraints at the data collection tier.</p>
+</section>
+
+<section id="governance" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 2 — Section 12</div>
+    <h2>Governance Framework &amp; ALM</h2>
+  </div>
+  <p>Application lifestyle management (ALM) relies on three isolated environments to control development changes and prevent disruptions to production workspaces.</p>
+
+  <div class="diagram-box">
+    <div class="diagram-title">Environment Segregation Pipeline Architecture</div>
+    <div class="mermaid">
+graph LR
+    subgraph DEV ["🛠️ Development Sandbox Environment"]
+        D_APP[Canvas Application Development Block]
+        D_FLOW[Automation Flow Scratch Workspace]
+        D_SPO[Isolated Testing Data Lists Layout]
+    end
+    subgraph UAT ["🧪 User Acceptance Verification Tenant"]
+        U_APP[Staging Version Build Verification]
+        U_FLOW[Orchestration Interface Integration Run Space]
+        U_SPO[Production Replica Structured Validation Lists]
+    end
+    subgraph PROD ["🚀 Live Corporate Production Workspace"]
+        P_APP[Published Production Client UI Application]
+        P_FLOW[Production Managed Automation Flow Engine]
+        P_SPO[Active Core System Relational Lists Data Ledger]
+    end
+
+    D_APP & D_FLOW & D_SPO --->|1. Solution Package Export &amp; Azure Pipeline Check| U_APP
+    U_APP & U_FLOW & U_SPO --->|2. Signed Functional Sign-off &amp; Production Release Deploy| P_APP
+
+    style DEV fill:#f5f5f5,stroke:#999
+    style UAT fill:#fff8e1,stroke:#f5a623,stroke-width:2px
+    style PROD fill:#e6fff5,stroke:#16c79a,stroke-width:2px
+    </div>
+  </div>
+
+  <p>Environment connectivity paths are managed via environment variables. This deployment pattern prevents target reference values from being hardcoded into configuration formulas or workflow steps, ensuring clean transition mechanics across testing phases.</p>
+</section>
+
+<section id="build-sharepoint" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 3 — Implementation Step 1</div>
+    <h2>SharePoint Provisioning Blueprint</h2>
+  </div>
+  <p>This technical blueprint details the architectural configuration for all seven tracking lists within SharePoint Online. Columns must match these structural definitions to guarantee type compliance and preserve data relationships across downstream systems.</p>
+
+  <h3>1. Team Members Schema Blueprint</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr><th>Technical Internal Identifier Field</th><th>Storage Data Type</th><th>System Rule Settings Constraint</th><th>Indexing Optimization Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>TeamMemberID</code></td><td>Counter Number Auto</td><td>Primary System Key Element Identifier Identifier</td><td>Automatically Managed Indexed Column Target</td></tr>
+        <tr><td><code>Title</code></td><td>Single Line Text String</td><td>Mandatory Entry Value: Full Display Identity Descriptor</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>LLID</code></td><td>Single Line Text String</td><td>Mandatory Identifier: System Identity Integration Key</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>Email</code></td><td>Single Line Text String</td><td>Mandatory Reference: Communication Routing Coordinates</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>Team</code></td><td>Choice Selection String</td><td>Options Configuration Set: Team Alpha / Team Beta / Operations</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>ActiveStatus</code></td><td>Boolean Yes/No Bit</td><td>Default Target Selection: True (Soft Delete Guard)</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>TeamJoiningDate</code></td><td>DateTime Object Target</td><td>Optional Field Context Track Log Value</td><td>Standard Processing Column Block Type</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>2. Platforms Master Layout Schema</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr><th>Technical Internal Identifier Field</th><th>Storage Data Type</th><th>System Rule Settings Constraint</th><th>Indexing Optimization Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>PlatformID</code></td><td>Counter Number Auto</td><td>Primary Relational Platform Master Data Key</td><td>Automatically Managed Indexed Column Target</td></tr>
+        <tr><td><code>Title</code></td><td>Single Line Text String</td><td>Unique Tool Identifier Reference Label (e.g. Meta Ads, Google Ads)</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>ActiveStatus</code></td><td>Boolean Yes/No Bit</td><td>Default Assignment Value: True Status Check Toggle</td><td>Standard Processing Column Block Type</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>3. Account Platform Reference Schema</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr><th>Technical Internal Identifier Field</th><th>Storage Data Type</th><th>System Rule Settings Constraint</th><th>Indexing Optimization Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>MappingID</code></td><td>Counter Number Auto</td><td>Primary Relational Layout Key Boundary Element</td><td>Automatically Managed Indexed Column Target</td></tr>
+        <tr><td><code>Title</code></td><td>Single Line Text String</td><td>Corporate Client Identity Group Account Name</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>PlatformNameLookup</code></td><td>Relational Lookup Link</td><td>Target Connection Array: Platforms List Lookup Row ID Reference</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>ActiveStatus</code></td><td>Boolean Yes/No Bit</td><td>Validation System Guard: True Active State Variable</td><td>Standard Processing Column Block Type</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>4. Access Matrix Framework Schema</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr><th>Technical Internal Identifier Field</th><th>Storage Data Type</th><th>System Rule Settings Constraint</th><th>Indexing Optimization Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>MappingID</code></td><td>Counter Number Auto</td><td>Primary Verification Data Element Matrix ID Key</td><td>Automatically Managed Indexed Column Target</td></tr>
+        <tr><td><code>TeamMemberLookupID</code></td><td>Relational Lookup Link</td><td>Target Connection Array: Team Members Configuration List Lookup Link</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>AccountMappingLookupID</code></td><td>Relational Lookup Link</td><td>Target Connection Array: Client Accounts List Lookup Link</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>ActiveStatus</code></td><td>Boolean Yes/No Bit</td><td>Conditional Visibility Target Variable Switch Control</td><td>Standard Processing Column Block Type</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>5. System Roles Definition Schema</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr><th>Technical Internal Identifier Field</th><th>Storage Data Type</th><th>System Rule Settings Constraint</th><th>Indexing Optimization Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>RoleID</code></td><td>Counter Number Auto</td><td>Primary Functional Authorization Key Target</td><td>Automatically Managed Indexed Column Target</td></tr>
+        <tr><td><code>TeamMemberLookupID</code></td><td>Relational Lookup Link</td><td>Target Connection Array: Team Members Reference List Lookup Link</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>RoleChoice</code></td><td>Choice Selection String</td><td>Options Configuration Set: Manager / Assignor / Analyst</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>ActiveStatus</code></td><td>Boolean Yes/No Bit</td><td>Security Visibility Control Toggle Dynamic Flag</td><td>Standard Processing Column Block Type</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>6. Core Transaction Tickets Schema</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr><th>Technical Internal Identifier Field</th><th>Storage Data Type</th><th>System Rule Settings Constraint</th><th>Indexing Optimization Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>TicketID</code></td><td>Counter Number Auto</td><td>Primary Core System Tracking Transaction Identifier</td><td>Automatically Managed Indexed Column Target</td></tr>
+        <tr><td><code>Title</code></td><td>Single Line Text String</td><td>Summary Label Description String of Technical Request Text</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>TicketLink</code></td><td>Hyperlink Object Url</td><td>External System Target Hyperlink Reference Value</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>AccountMappingID</code></td><td>Relational Lookup Link</td><td>Target Connection Array: Client Accounts List lookup row ID</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>PlatformLookupID</code></td><td>Relational Lookup Link</td><td>Target Connection Array: Platforms List Lookup row ID</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>CampaignCount</code></td><td>Whole Integer Number</td><td>Tracking Metric Input Numeric Element Data Value</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>InsertionOrders</code></td><td>Multiple Lines Text</td><td>Memo Block Notes and Tracking Text String Block</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>RequestLeadLookupID</code></td><td>Relational Lookup Link</td><td>Target Connection Array: Team Members List primary selection user ID</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>AdditionalMembersJSON</code></td><td>Multiple Lines Text</td><td>JSON Structural Code Serialization Array String containing Secondary User Objects</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>TicketStatus</code></td><td>Choice Selection String</td><td>Options Set: Assigned / In Progress / On Hold / Waiting for POC Input / Completed</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>DateCreated</code></td><td>DateTime Object Type</td><td>System Auto Injection Parameter Core Value</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>DueDate</code></td><td>DateTime Date Type</td><td>Target Milestone Delivery Deadline Date Property</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>CompletedDate</code></td><td>DateTime Object Type</td><td>Workflow Resolution Event Registration Date Stamp</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>HoursLoggedByAssignor</code></td><td>Floating Decimal Type</td><td>Capacity Optimization Logging Float Property Value</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>InProgressTimestamp</code></td><td>DateTime Object Type</td><td>Automation Processing Event Tracker Capture Log Point</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>CompleteTimestamp</code></td><td>DateTime Object Type</td><td>Automation Processing Event Tracker Capture Log Point</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>TeamsChatID</code></td><td>Single Line Text String</td><td>Graph Communications Reference Thread Structural Key Element</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>TeamsChatLink</code></td><td>Single Line Text String</td><td>Graph Integration Jump Connection Coordinates Hyperlink String</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>LastUpdated</code></td><td>DateTime Object Type</td><td>System Modified Field Automation Tracking Target</td><td>Standard Processing Column Block Type</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>7. Saved Report Configuration JSON Layout Schema</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr><th>Technical Internal Identifier Field</th><th>Storage Data Type</th><th>System Rule Settings Constraint</th><th>Indexing Optimization Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>ReportID</code></td><td>Counter Number Auto</td><td>Primary Workspace Dash Generation Key Entry</td><td>Automatically Managed Indexed Column Target</td></tr>
+        <tr><td><code>Title</code></td><td>Single Line Text String</td><td>Operator Personal Selection Custom View Description Tag Text</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>CreatedByLookupID</code></td><td>Relational Lookup Link</td><td>Target Connection Array: Team Members Identity Tracking Link</td><td>Explicit Performance Index Optimization Target</td></tr>
+        <tr><td><code>FilterJSON</code></td><td>Multiple Lines Text</td><td>Structural Declarative Blueprint Configuration Text Target</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>MetricsJSON</code></td><td>Multiple Lines Text</td><td>Value Selection Parameters Schema Layout Code</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>IsShared</code></td><td>Boolean Yes/No Bit</td><td>Public Workspace Access Availability State Configuration Switch</td><td>Standard Processing Column Block Type</td></tr>
+        <tr><td><code>CreatedDate</code></td><td>DateTime Object Type</td><td>Log Creation Registration Timestamp Point</td><td>Standard Processing Column Block Type</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="build-canvas" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 3 — Implementation Step 2</div>
+    <h2>Power Apps Canvas Build Manual</h2>
+  </div>
+  <p>The system application relies on an internal declarative layout model. Security rules hide unauthorized menu options from the application interface, while search fields execute server-side filtering to maintain delegation compatibility.</p>
+
+  <h3>App OnStart &amp; Environment Synchronization Blueprint</h3>
+  <div class="code-block">
+    <span class="cmt">// Retrieve User Identity Context from the Authentication Service Tenant</span>
+    <span class="kw">Set</span>(gblUserEmail, <span class="fn">User</span>().Email);
+    <span class="kw">Set</span>(gblUserClaimsPrincipal, <span class="fn">User</span>().EntraID);
+    
+    <span class="cmt">// Resolve Identity Object Profile from the Master Configuration Records</span>
+    <span class="kw">Set</span>(gblCurrentUserRecord, <span class="fn">LookUp</span>('Team Members', Email = gblUserEmail && ActiveStatus = <span class="op">true</span>));
+    
+    <span class="cmt">// Load Application Security Profiles and Cache Operational Roles</span>
+    <span class="kw">ClearCollect</span>(colUserRoles, <span class="fn">Filter</span>('Team Member Roles', TeamMemberLookup.Id = gblCurrentUserRecord.TeamMemberID && ActiveStatus = <span class="op">true</span>));
+    
+    <span class="cmt">// Set Interface Navigation Security Visibility Scopes</span>
+    <span class="kw">Set</span>(gblIsManager, <span class="fn">If</span>(<span class="fn">IsBlank</span>(<span class="fn">LookUp</span>(colUserRoles, RoleChoice.Value = <span class="str">"Manager"</span>)), <span class="op">false</span>, <span class="op">true</span>));
+    <span class="kw">Set</span>(gblIsAssignor, <span class="fn">If</span>(<span class="fn">IsBlank</span>(<span class="fn">LookUp</span>(colUserRoles, RoleChoice.Value = <span class="str">"Assignor"</span>)), <span class="op">false</span>, <span class="op">true</span>));
+    
+    <span class="cmt">// Initialize Application Visual Layout Parameters</span>
+    <span class="kw">Set</span>(gblResponsiveSidebarWidth, <span class="var">300</span>);
+    <span class="kw">Set</span>(gblAppThemePrimaryColor, <span class="fn">ColorValue</span>(<span class="str">"#0f3460"</span>));
+  </div>
+
+  <h3>Screen 1: Home Screen Control Specification</h3>
+  <p><strong>Purpose:</strong> Primary routing landing area and personal overview dashboard interface.</p>
+  <div class="wireframe">
+<pre>
++---------------------------------------------------------------------------------------------------------+
+| [=] TeamsDash Portal Home Workspace                    | User Profile Identity context card info widget |
++---------------------------------------------------------------------------------------------------------+
+| [ Navigation Sidebar Pane ]  | Welcome back, [User Display Name] Context Parameter Status Field Value   |
+|                             |                                                                         |
+| -> Home Board Interface     |  +--------------------+  +--------------------+  +--------------------+ |
+| -> System Creation Intake   |  | My Active Backlog  |  | Total Shared Items |  | Urgent SLA Alerts  | |
+| -> Assignment Queue Hub     |  |     [ 3 Items ]    |  |    [ 14 Items ]    |  |     [ 0 Alert ]    | |
+| -> Capacity Dashboard Block |  +--------------------+  +--------------------+  +--------------------+ |
+| -> Reporting Studio Center  |                                                                         |
+|                             | [ Complete Functional Gallery Stream List: Personal Active Allocations ]|
+| * Admin Core Control Block  | | TKT-8932 | Deployment Configuration Update | Client Alpha | Pending  | |
+|                             | | TKT-8941 | Campaign Tracking Setup Core    | Client Beta  | Active   | |
++---------------------------------------------------------------------------------------------------------+
+</pre>
+  </div>
+  <p><strong>UI Components &amp; Logic Actions:</strong> Navigation controls adapt to the user's role profile. Clicking an assignment row sets local reference variables and routes the user directly to the targeted execution screen.</p>
+
+  <h3>Screen 2: Ticket Intake Form Specification</h3>
+  <p><strong>Purpose:</strong> Structured creation form enforcing relational lookups.</p>
+  <div class="wireframe">
+<pre>
++---------------------------------------------------------------------------------------------------------+
+| [=] New Ticket Creation Form Terminal Panel Module                                                      |
++---------------------------------------------------------------------------------------------------------+
+| Ticket Name Identifier Text Input: [ New Campaign Tag Initialization Tracking Vector                  ] |
+| Client Account Association Target Selection Lookup dropdown: [ Enterprise Client Group Alpha        |v] |
+| Dynamic Dependent Platform Type Lookup selector widget:     [ Google Marketing Ad Stack (DV360)     |v] |
+| Campaign Volume Estimate Counter Metric Number field input: [ 12                                      ] |
+| Core Target Deadline Date Selector Property field picker:   [ 2026-06-15                            ] |
+| Insertion Orders / Notes Memo String Block input area:                                                  |
+| [ Primary tags must match the regional media parameters layout profiles sheet.                       ] |
++---------------------------------------------------------------------------------------------------------+
+|                                                      [ Cancel Clear Action ]  [ Commit Submission Save ]|
++---------------------------------------------------------------------------------------------------------+
+</pre>
+  </div>
+  <p><strong>Cascading Dropdown Dependent Expression Logic:</strong> To restrict platform options based on the selected client without breaking delegation processing boundaries, construct the platform element input field using this configuration:
+  </p>
+  <div class="code-block">
+    <span class="cmt">// Items target property for Dropdown Platform Selector Reference control</span>
+    <span class="fn">Filter</span>('Account Platform Mapping', Title = drpIntakeAccountSelector.Selected.Title && ActiveStatus = <span class="op">true</span>)
+  </div>
+
+  <h3>Screen 3: Ticket Detail View Specification</h3>
+  <p><strong>Purpose:</strong> Comprehensive workspace viewer tracking audit trails, links, and transaction logs.</p>
+  <div class="wireframe">
+<pre>
++---------------------------------------------------------------------------------------------------------+
+| [=] Ticket Detailed Parameters Master Terminal View                                                     |
++---------------------------------------------------------------------------------------------------------+
+| Ticket reference Token: TKT-2026-89432   | Phase Phase: [ In Progress Operational Phase State Indicator]|
+| Target Client Account: Client Alpha Group | Platform Type: DV360 Execution Stack | Volume Count: 12      |
++---------------------------------------------------------------------------------------------------------+
+| Primary Assigned Specialist: Akash Malik  | Collaborative Chat Workspace Access Link: [ Direct Link URL ]|
++---------------------------------------------------------------------------------------------------------+
+| Progress Activity Tracking Notes:                                                                       |
+| -> 2026-05-29 09:12: Assignor processed routing to Akash Malik context profile.                        |
+| -> 2026-05-29 09:15: Cloud Automate Workflow created Microsoft Teams Group Chat interface channel.      |
++---------------------------------------------------------------------------------------------------------+
+| [ Return to Queue Hub ]                                                       [ Launch Edit Mode Panel ]|
++---------------------------------------------------------------------------------------------------------+
+</pre>
+  </div>
+
+  <h3>Screen 4: Ticket Assignment Control Panel</h3>
+  <p><strong>Purpose:</strong> Access control routing desk and resource loading console.</p>
+  <div class="wireframe">
+<pre>
++---------------------------------------------------------------------------------------------------------+
+| [=] Operations Assignment Control Board                                                                 |
++---------------------------------------------------------------------------------------------------------+
+| Selected Item Info: TKT-89432 | Client Alpha Group Account Context Target | Platform Spec: DV360 Tool   |
++---------------------------------------------------------------------------------------------------------+
+| Select Eligible Authorized Lead Dropdown Filtered Select: [ Akash Malik                             |v] |
+| Select Additional Support Operators Multi-Select widget:  [ [John Doe x] [Sarah Jenkins x]          |v] |
+| Initial Setup Time Overhead Float Effort Entry input:     [ 1.5 Hours                                 ] |
++---------------------------------------------------------------------------------------------------------+
+| [ Purge Selections Reject ]                                             [ Dispatch Functional Allocation ]|
++---------------------------------------------------------------------------------------------------------+
+</pre>
+  </div>
+  <p><strong>Request Lead Context Search Query Pattern Formula:</strong> The selector field filters options using active capability configurations to prevent routing items to uncertified personnel:
+  </p>
+  <div class="code-block">
+    <span class="cmt">// Items target configuration expression for Eligible Resource Selector control</span>
+    <span class="fn">Filter</span>('Team Members', TeamMemberID <span class="op">In</span> <span class="fn">ShowColumns</span>(<span class="fn">Filter</span>('Access Mapping', AccountLookup.Title = drpAssignAccountContext.Selected.Title && PlatformLookup.Title = drpAssignPlatformContext.Selected.Title && ActiveStatus = <span class="op">true</span>), <span class="str">"TeamMemberLookupID"</span>) && ActiveStatus = <span class="op">true</span>)
+  </div>
+
+  <h3>Screen 5: Team Workload Capacity Console</h3>
+  <p><strong>Purpose:</strong> Operational interface tracking live assignment distributions and workload bottlenecks.</p>
+  <div class="wireframe">
+<pre>
++---------------------------------------------------------------------------------------------------------+
+| [=] Operational Utilization Dashboard Grid Overview Panel                                               |
++---------------------------------------------------------------------------------------------------------+
+| Global Context Filter Choice Selector: [ All Corporate Internal Teams Operations Division             |v] |
++---------------------------------------------------------------------------------------------------------+
+| Resource Display Profile | Open Backlog Metric | Active Phase Load | System Capacity Utilization Load   |
+|--------------------------|---------------------|-------------------|------------------------------------|
+| -> Akash Malik Profile   | 2 Active Tickets    | 1 Processing Item | [||||||||             ]  40% Load  |
+| -> Sarah Jenkins Profile | 5 Active Tickets    | 3 Processing Item | [|||||||||||||||||||||] 100% Load  |
+| -> John Doe Profile      | 1 Active Tickets    | 1 Processing Item | [||||                 ]  20% Load  |
++---------------------------------------------------------------------------------------------------------+
+</pre>
+  </div>
+
+  <h3>Screen 6: Administration System Reference Workspace</h3>
+  <p><strong>Purpose:</strong> Master database configuration console restricted to Manager roles.</p>
+  <div class="wireframe">
+<pre>
++---------------------------------------------------------------------------------------------------------+
+| [=] Administrative Base Parameters Setup Terminal Panel   (MANAGEMENT PRIVILEGES CONFIRMED)             |
++---------------------------------------------------------------------------------------------------------+
+| [ Option Block 1: User Control ]   | Manage User Database Setup, Alter Active states, Assign App Roles. |
+| [ Option Block 2: Accounts Link ]   | Onboard Corporate Clients, Set Platform Dependencies, Define Scope. |
+| [ Option Block 3: Access Matrix ]  | Bind Analyst Access Vectors, Manage Capability Certifications.     |
++---------------------------------------------------------------------------------------------------------+
+| System Maintenance Event Configuration State Log Tracker View:                                         |
+| -> User account 'John Doe' status changed to Retired by Manager profile session.                        |
++---------------------------------------------------------------------------------------------------------+
+</pre>
+  </div>
+
+  <h3>Screen 7: Integrated Business Analytics Center</h3>
+  <p><strong>Purpose:</strong> Provides operational performance trends, trend graphs, and data summary tables.</p>
+  <div class="wireframe">
+<pre>
++---------------------------------------------------------------------------------------------------------+
+| [=] System Performance Telemetry Center Workspace Studio                                               |
++---------------------------------------------------------------------------------------------------------+
+| Historical Date Range: [ 2026-01-01 ] to [ 2026-05-29 ] | Select Division Filter: [ All Accounts   |v] |
++---------------------------------------------------------------------------------------------------------+
+| Complete Platform Inflow Analytics Output Track:                                                        |
+| -> Aggregate Items Processed Ledger Count: [ 3,492 Tickets Resolved Total ]                             |
+| -> System Performance Average Cycle Time Measure: [ 14.2 Hours Total Duration ]                         |
+| -> Core Resource Capacity Overhead: Balance Stable with no active resource overages.                   |
++---------------------------------------------------------------------------------------------------------+
+</pre>
+  </div>
+
+  <h3>Screen 8: Personal Execution Workspace Center</h3>
+  <p><strong>Purpose:</strong> Filtered workspace console tracking personal performance metrics.</p>
+  <div class="wireframe">
+<pre>
++---------------------------------------------------------------------------------------------------------+
+| [=] Personal Operational Backlog Console Terminal Dashboard                                            |
++---------------------------------------------------------------------------------------------------------+
+| Operator Profile: Akash Malik | Current Functional Level Assessment Track: Analyst Operations Tier      |
++---------------------------------------------------------------------------------------------------------+
+| Personal Metrics Summary Dashboard Widgets:                                                            |
+| [ Resolved This Month: 24 Items ] | [ Open Backlog: 2 Items ] | [ SLA Compliance: 100% Status ]         |
++---------------------------------------------------------------------------------------------------------+
+| [ Open Selected Personal Communications Thread Chat ]  |  [ Launch Selected Maintenance Work Item ]   |
++---------------------------------------------------------------------------------------------------------+
+</pre>
+  </div>
+</section>
+
+<section id="build-automate" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 3 — Implementation Step 3</div>
+    <h2>Power Automate Automation Engine</h2>
+  </div>
+  <p>The workflow engine handles event synchronization and external messaging tasks. These background runs process data serialization, parse object structures, handle platform messaging, and update status properties independently from user interface processes.</p>
+
+  <h3>Workflow Trigger Logic: Core Workspace Provisioning Block</h3>
+  <p><strong>Trigger Condition:</strong> List Monitor Rule — Fires when an entity row is created or modified inside the <code>Tickets</code> ledger list with an allocation phase set to <code>Assigned</code> and the <code>TeamsChatID</code> property left blank.</p>
+  
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Target Parameter Extraction Validation</h4>
+        <p>Extract core parameters from the event record (<code>Ticket ID</code>, <code>Account Title</code>, <code>Platform Value</code>, <code>Lead Email Link</code>, and <code>Additional Members Struct JSON</code>).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Operator Object Resolution Loops</h4>
+        <p>Iterate through assignment collections to parse individual identity fields. This action maps descriptive system fields with the verified directory account objects required for chat group provisioning.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Microsoft Graph Workspace Provisioning HTTP Payload</h4>
+        <p>Execute an internal Microsoft Graph connection action to build the secure conversation interface environment. This endpoint provisions a managed group workspace using the following payload format:
+        </p>
+        <div class="code-block">
+{
+  <span class="kw">"chatType"</span>: <span class="str">"group"</span>,
+  <span class="kw">"topic"</span>: <span class="str">"Ticket: TKT-2026-89432 | Enterprise Client Group Alpha | 2026-05-29"</span>,
+  <span class="kw">"members"</span>: [
+    {
+      <span class="kw">"@odata.type"</span>: <span class="str">"#microsoft.graph.aadUserConversationMember"</span>,
+      <span class="kw">"roles"</span>: [<span class="str">"owner"</span>],
+      <span class="kw">"user@odata.bind"</span>: <span class="str">"https://graph.microsoft.com/v1.0/users('assignor_account@company.com')"</span>
+    },
+    {
+      <span class="kw">"@odata.type"</span>: <span class="str">"#microsoft.graph.aadUserConversationMember"</span>,
+      <span class="kw">"roles"</span>: [<span class="str">"candidate"</span>],
+      <span class="kw">"user@odata.bind"</span>: <span class="str">"https://graph.microsoft.com/v1.0/users('analyst_lead@company.com')"</span>
+    }
+  ]
+}
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h4>Adaptive Card Dynamic Payload Injection</h4>
+        <p>Post the schema-defined Adaptive Card payload into the group chat thread, then invoke a secondary Graph call to pin the card to the top container tab for persistent access.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h4>Reference Parameter State Synchronization Update</h4>
+        <p>Capture the generated communication references returned by the Graph service, then update the source transaction row to link the chat identifier keys back to the master list.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="build-powerbi" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 3 — Implementation Step 4</div>
+    <h2>Power BI Modeling &amp; DAX Library</h2>
+  </div>
+  <p>The analytics layer processes structural calculation tasks using explicit DAX measurement scripts. These calculation formulas run server-side within memory containers to guarantee low data latency even when processing complex transactional logic.</p>
+
+  <h3>Production-Ready Business Intelligence DAX Repository</h3>
+  
+  <h4>Measure 1: Aggregate Ticket Inflow Base Count</h4>
+  <div class="code-block">
+Total Tickets := <span class="fn">COUNTROWS</span>(<span class="var">'Tickets'</span>)
+  </div>
+
+  <h4>Measure 2: Completed Item Count Summary</h4>
+  <div class="code-block">
+Completed Tickets := <span class="fn">CALCULATE</span>(
+    [Total Tickets],
+    <span class="var">'Tickets'[TicketStatus]</span> = <span class="str">"Completed"</span>
+)
+  </div>
+
+  <h4>Measure 3: Active Operations Backlog Volume</h4>
+  <div class="code-block">
+Active Backlog := <span class="fn">CALCULATE</span>(
+    [Total Tickets],
+    <span class="var">'Tickets'[TicketStatus]</span> &lt;&gt; <span class="str">"Completed"</span> && <span class="var">'Tickets'[TicketStatus]</span> &lt;&gt; <span class="str">"On Hold"</span>
+)
+  </div>
+
+  <h4>Measure 4: Operational Effort Duration Average (Hours)</h4>
+  <div class="code-block">
+Average Completion Hours := <span class="fn">AVERAGE</span>(<span class="var">'Tickets'[HoursLoggedByAssignor]</span>)
+  </div>
+
+  <h4>Measure 5: Total Operational Tracking Duration Average (Days)</h4>
+  <div class="code-block">
+Average Resolution Time := <span class="fn">AVERAGEX</span>(
+    <span class="fn">FILTER</span>(<span class="var">'Tickets'</span>, <span class="var">'Tickets'[TicketStatus]</span> = <span class="str">"Completed"</span>),
+    <span class="fn">DATEDIFF</span>(<span class="var">'Tickets'[DateCreated]</span>, <span class="var">'Tickets'[CompletedDate]</span>, <span class="kw">DAY</span>)
+)
+  </div>
+
+  <h4>Measure 6: Resource Workload Capacity Tracking Load Percentage</h4>
+  <div class="code-block">
+Team Utilization := <span class="fn">DIVIDE</span>(
+    [Active Backlog],
+    <span class="fn">COUNTROWS</span>(<span class="fn">FILTER</span>(<span class="var">'Team Members'</span>, <span class="var">'Team Members'[ActiveStatus]</span> = <span class="op">true</span>)) * <span class="var">5</span>,
+    <span class="var">0</span>
+)
+  </div>
+
+  <h4>Measure 7: Urgent Daily Milestone Target Monitoring Queue</h4>
+  <div class="code-block">
+Tickets Due Today := <span class="fn">CALCULATE</span>(
+    [Active Backlog],
+    <span class="var">'Tickets'[DueDate]</span> = <span class="fn">TODAY</span>()
+)
+  </div>
+
+  <h4>Measure 8: Weekly Milestone Tracking Forecast Queue</h4>
+  <div class="code-block">
+Tickets Due This Week := <span class="fn">CALCULATE</span>(
+    [Active Backlog],
+    <span class="var">'Tickets'[DueDate]</span> &gt;= <span class="fn">TODAY</span>() && <span class="var">'Tickets'[DueDate]</span> &lt;= <span class="fn">TODAY</span>() + <span class="var">7</span>
+)
+  </div>
+
+  <div class="callout callout-success">
+    <div class="callout-body">
+      <strong>ETL Performance Strategy: Power Query Fold Optimization</strong>
+      <p>Data connection links should be structured to use Power Query's structural folding rules. Avoid pulling raw tracking data arrays into memory to perform data type conversions or character splits. Execute all initial filter constraints, parameter extractions, and lookup expansions within the upstream storage layer to preserve server memory and minimize refresh times.</p>
+    </div>
+  </div>
+</section>
+
+<section id="performance" class="section">
+  <div class="section-header">
+    <div class="section-number">Volume 3 — Implementation Step 5</div>
+    <h2>Performance Optimization</h2>
+  </div>
+  <p>To support high volume data growth over a multi-year footprint, performance configurations must be applied across every platform layer.</p>
+
+  <div class="card-grid card-grid-2">
+    <div class="card accent-left">
+      <h4>Data Management Threshold Strategies</h4>
+      <p>Configure custom system views centered around explicit primary index columns to keep tracking queries beneath the standard 5,000-item threshold constraint. Use pre-calculated query definitions to isolate search operations from raw transaction arrays.</p>
+    </div>
+    <div class="card accent-left">
+      <h4>Interface Load Optimization</h4>
+      <p>Avoid nesting slow Lookup formulas inside data galleries or repeat loops. Cache shared reference datasets locally into memory structures using single-run startup expressions, keeping interface rendering times below a 3-second target.</p>
+    </div>
+    <div class="card accent-left">
+      <h4>Automation Run Efficiency</h4>
+      <p>Implement targeted event filtering paths to prevent background workflows from executing on irrelevant field updates. Configure concurrency throttles and API boundary limits to optimize parallel job processing speeds.</p>
+    </div>
+    <div class="card accent-left">
+      <h4>Semantic Model Scaling</h4>
+      <p>Use structural columns instead of continuous string descriptions to design optimized data models. Implement incremental refresh rules to focus scheduled background ingestion on active transaction rows, reducing system processing load.</p>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap" class="section">
+  <div class="section-header">
+    <div class="section-number">Platform Evolution</div>
+    <h2>Future Roadmap</h2>
+  </div>
+  <p>The system deployment model uses a phased evolutionary schedule to carefully introduce advanced capabilities over a stable tracking architecture.</p>
+
+  <div class="roadmap">
+    <div class="phase">
+      <div class="phase-circle current">P1</div>
+      <h4>Phase 1: Foundation Baseline</h4>
+      <ul>
+        <li>Core Data Model Setup</li>
+        <li>Canvas Interface Portal</li>
+        <li>Automated Chat Workspace</li>
+        <li>Adaptive Card Updates</li>
+        <li>Star Schema Model</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="phase-circle future1">P2</div>
+      <h4>Phase 2: Service Automation</h4>
+      <ul>
+        <li>Automated SLA Warnings</li>
+        <li>Manager Escalation System</li>
+        <li>Extended Notification Triggers</li>
+        <li>History Field Logging</li>
+        <li>Batch Resource Routing</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="phase-circle future2">P3</div>
+      <h4>Phase 3: Intelligence Scaling</h4>
+      <ul>
+        <li>AI Copilot Assistant Integration</li>
+        <li>Automated Ticket Inflow Tagging</li>
+        <li>Predictive Capacity Forecasting</li>
+        <li>Natural Language Query Tool</li>
+        <li>Smart Balance Recommendations</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div><div class="doc-footer">
+  <span>TeamsDash Enterprise Solution Design &amp; Implementation Manual</span>
+  <span>Platform Framework Version: M365 Cloud Native Standard</span>
+  <span>Confidential — Enterprise Internal Distribution Only</span>
+</div>
+
+<script>
+  // Initialize Mermaid Layout Engine with Consistent Technical Branding Theme Parameters
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#e8f4ff',
+      primaryTextColor: '#0f3460',
+      primaryBorderColor: '#0f3460',
+      lineColor: '#1a6fc4',
+      secondaryColor: '#f0fff8',
+      tertiaryColor: '#fff8e0',
+      background: '#ffffff',
+      mainBkg: '#e8f4ff',
+      nodeBorder: '#0f3460',
+      clusterBkg: '#f4f7fb',
+      titleColor: '#0f3460',
+      edgeLabelBackground: '#ffffff',
+      fontSize: '13px',
+      fontFamily: 'Segoe UI, Arial, sans-serif'
+    },
+    flowchart: { curve: 'basis', useMaxWidth: true, htmlLabels: true },
+    sequence: { useMaxWidth: true, boxMargin: 10, diagramMarginX: 20, diagramMarginY: 10 },
+    er: { useMaxWidth: true, graphPadding: 20 }
+  });
+
+  // Responsive Navigation Sidebar Active Segment Tracker Logic
+  const observedSections = document.querySelectorAll('section[id]');
+  const sidebarAnchors = document.querySelectorAll('#sidebar nav a');
+  
+  window.addEventListener('scroll', () => {
+    let currentActiveIdentifier = '';
+    const executionScrollPosition = window.scrollY + 100;
+
+    observedSections.forEach(sectionElement => {
+      if (executionScrollPosition >= sectionElement.offsetTop) {
+        currentActiveIdentifier = sectionElement.getAttribute('id');
+      }
+    });
+
+    sidebarAnchors.forEach(anchorElement => {
+      anchorElement.classList.remove('active');
+      if (anchorElement.getAttribute('href') === '#' + currentActiveIdentifier) {
+        anchorElement.classList.add('active');
+      }
+    });
+  });
+
+  // Mobile View Responsive Display Menu Toggle Event Handler Mechanics
+  const mobileMenuToggleButton = document.getElementById('menuToggle');
+  const sidebarContainerElement = document.getElementById('sidebar');
+  
+  mobileMenuToggleButton.addEventListener('click', (event) => {
+    sidebarContainerElement.classList.toggle('open');
+    event.stopPropagation();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (sidebarContainerElement.classList.contains('open') && 
+        !sidebarContainerElement.contains(event.target) && 
+        event.target !== mobileMenuToggleButton) {
+      sidebarContainerElement.classList.remove('open');
+    }
+  });
+
+  document.querySelectorAll('#sidebar nav a').forEach(navigationLinkElement => {
+    navigationLinkElement.addEventListener('click', () => {
+      sidebarContainerElement.classList.remove('open');
+    });
+  });
+</script>
+
+</body>
+</html>

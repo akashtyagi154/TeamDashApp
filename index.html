@@ -1,0 +1,2368 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeamsDash - Enterprise Sandbox Console</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons for native M365 styling -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        powerapps: {
+                            main: '#742774',
+                            light: '#f5ebf5',
+                            dark: '#5a1d5a',
+                            accent: '#8c318c'
+                        },
+                        msteams: {
+                            darkBg: '#1f1f22',
+                            sidebar: '#29292c',
+                            activeChat: '#141416',
+                            purple: '#6264a7',
+                            hover: '#333337',
+                            cardBg: '#2f2f33',
+                            border: '#3b3b3f'
+                        },
+                        powerbi: {
+                            yellow: '#f2c811',
+                            greyBg: '#f3f2f1',
+                            card: '#ffffff',
+                            text: '#252423',
+                            border: '#e1dfdd'
+                        },
+                        m365: {
+                            blue: '#0078d4',
+                            bg: '#f3f2f1',
+                            dark: '#201f1e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col text-slate-800 font-sans antialiased overflow-hidden">
+
+
+    <!-- Top Platform Global Notification Center -->
+    <div id="systemNotification" class="bg-blue-600 text-white px-4 py-2 text-xs sm:text-sm text-center font-medium transition-all duration-300 transform translate-y-0 relative hidden z-50 flex items-center justify-center gap-2 shadow-lg">
+        <i class="fa-solid fa-circle-info animate-pulse"></i>
+        <span id="notificationText">System initialized successfully.</span>
+        <button onclick="dismissNotification()" class="absolute right-4 hover:opacity-80 text-lg">&times;</button>
+    </div>
+
+
+    <!-- Master Global Navigation Tabs Bar -->
+    <nav class="bg-slate-950 text-slate-300 shrink-0 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+            <div class="flex items-center justify-between h-14">
+                <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white shadow-md">
+                        <i class="fa-solid fa-layer-group text-sm"></i>
+                    </div>
+                    <span class="font-bold text-sm sm:text-base text-white tracking-wide hidden sm:inline">TeamsDash Sandbox</span>
+                    <span class="text-[10px] px-2 py-0.5 bg-slate-800 border border-slate-700 rounded-full font-mono text-slate-400">v2.0-Live</span>
+                </div>
+                
+                <div class="flex space-x-1 overflow-x-auto max-w-[70%] sm:max-w-none py-1 custom-scrollbar shrink-0">
+                    <button onclick="switchMasterTab('powerapp')" id="tabBtn-powerapp" class="px-2.5 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all">
+                        <i class="fa-solid fa-mobile-screen-button text-purple-400"></i>
+                        Power Apps
+                    </button>
+                    <button onclick="switchMasterTab('teams')" id="tabBtn-teams" class="px-2.5 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all">
+                        <i class="fa-brands fa-microsoft-teams text-indigo-400"></i>
+                        MS Teams
+                        <span id="teamsChatBadge" class="bg-rose-500 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold hidden">0</span>
+                    </button>
+                    <button onclick="switchMasterTab('powerbi')" id="tabBtn-powerbi" class="px-2.5 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all">
+                        <i class="fa-solid fa-chart-pie text-yellow-400"></i>
+                        Power BI
+                    </button>
+                    <button onclick="switchMasterTab('admin')" id="tabBtn-admin" class="px-2.5 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all">
+                        <i class="fa-solid fa-sliders text-sky-400"></i>
+                        M365 Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- Main Content Work Area -->
+    <main class="grow overflow-y-auto bg-slate-50 relative custom-scrollbar">
+
+
+        <!-- ============================== TAB 1: POWER APPS (STYLING MATED) ============================== -->
+        <section id="tab-powerapp" class="h-full flex flex-col">
+            <!-- Simulated Power Apps Client Browser Frame -->
+            <div class="grow flex flex-col bg-white">
+                <!-- Power Apps Header -->
+                <div class="bg-powerapps-main text-white px-4 py-3 flex justify-between items-center shadow-md shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="h-8 w-8 bg-powerapps-dark rounded flex items-center justify-center text-white font-black text-sm">
+                            <i class="fa-solid fa-cube"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xs sm:text-sm font-bold tracking-tight">TeamsDash App</h2>
+                            <p class="text-[9px] text-powerapps-light/70 font-mono" id="appContextLabel">Current User: Administrator (Manager)</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="switchAppView('home')" id="appNav-home" class="px-2.5 sm:px-3 py-1 rounded text-[11px] sm:text-xs font-semibold transition bg-powerapps-accent text-white">
+                            <i class="fa-solid fa-house mr-1"></i> My Workspace
+                        </button>
+                        <button onclick="switchAppView('workload')" id="appNav-workload" class="px-2.5 sm:px-3 py-1 rounded text-[11px] sm:text-xs font-semibold transition hover:bg-powerapps-accent text-powerapps-light">
+                            <i class="fa-solid fa-users-gear mr-1"></i> Team Workloads
+                        </button>
+                    </div>
+                </div>
+
+
+                <!-- Power Apps Dynamic Inner View Screen Container -->
+                <div class="grow overflow-y-auto p-4 sm:p-6 bg-slate-50 custom-scrollbar">
+                    
+                    <!-- 1.1 APP VIEW: HOME SCREEN (Gallery & Workspace) -->
+                    <div id="appView-home" class="space-y-6">
+                        <!-- Dashboard Cards inside Power App -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">My Active Tickets</p>
+                                    <p class="text-2xl font-black text-powerapps-main mt-1" id="appMyActiveCount">0</p>
+                                </div>
+                                <div class="h-10 w-10 bg-powerapps-light text-powerapps-main rounded-lg flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-clipboard-list"></i>
+                                </div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Unassigned Queue</p>
+                                    <p class="text-2xl font-black text-amber-600 mt-1" id="appUnassignedCount">0</p>
+                                </div>
+                                <div class="h-10 w-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-user-slash"></i>
+                                </div>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Account Active Total</p>
+                                    <p class="text-2xl font-black text-emerald-600 mt-1" id="appTotalActiveCount">0</p>
+                                </div>
+                                <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-globe"></i>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Ticket Gallery Panel -->
+                        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                            <div class="p-4 border-b border-slate-150 flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center bg-slate-50">
+                                <h3 class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-2">
+                                    <i class="fa-solid fa-table-list text-powerapps-main"></i>
+                                    SharePoint Synchronized Work List
+                                </h3>
+                                <div class="flex gap-2">
+                                    <div class="relative max-w-xs">
+                                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                                        <input type="text" id="appSearchInput" onkeyup="filterAppGallery()" placeholder="Search accounts, leads, IDs..." class="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-powerapps-main bg-white">
+                                    </div>
+                                    <button onclick="switchAppView('intake')" id="appNewTicketBtn" class="bg-powerapps-main hover:bg-powerapps-dark text-white px-3 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition">
+                                        <i class="fa-solid fa-plus"></i> New Ticket
+                                    </button>
+                                </div>
+                            </div>
+
+
+                            <div class="overflow-x-auto max-h-[350px] custom-scrollbar">
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                            <th class="py-3 px-4">Ticket ID</th>
+                                            <th class="py-3 px-4">Ticket Details</th>
+                                            <th class="py-3 px-4">Account Scope</th>
+                                            <th class="py-3 px-4">Platform Type</th>
+                                            <th class="py-3 px-4">Lead</th>
+                                            <th class="py-3 px-4">Due Date</th>
+                                            <th class="py-3 px-4">Status</th>
+                                            <th class="py-3 px-4 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="appTicketGallery" class="divide-y divide-slate-100">
+                                        <!-- Rendered Dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- 1.2 APP VIEW: TICKET INTAKE SCREEN -->
+                    <div id="appView-intake" class="p-2 sm:p-4 hidden">
+                        <div class="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-md p-6">
+                            <div class="border-b border-slate-100 pb-3 mb-5 flex justify-between items-center">
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-800">Operational Ticket Intake</h3>
+                                    <p class="text-xs text-slate-500 mt-0.5">Log campaign metadata directly to SharePoint Online lists.</p>
+                                </div>
+                                <button onclick="switchAppView('home')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+
+
+                            <form id="intakeForm" class="space-y-4" onsubmit="handleIntakeSubmit(event)">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                                    <div class="col-span-1 md:col-span-2">
+                                        <label class="block font-bold text-slate-600 mb-1">Ticket Name *</label>
+                                        <input type="text" id="intakeTicketName" required placeholder="e.g. Starbucks Summer Launch" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main">
+                                    </div>
+                                    <div class="col-span-1 md:col-span-2">
+                                        <label class="block font-bold text-slate-600 mb-1">Jira Link *</label>
+                                        <input type="url" id="intakeTicketLink" required placeholder="https://jira.org/browse/TKT-100" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Account *</label>
+                                        <select id="intakeAccount" onchange="handleAccountChange()" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main bg-white">
+                                            <!-- Dynamic Accounts -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Platform (Cascades) *</label>
+                                        <select id="intakePlatform" onchange="handlePlatformChange()" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main bg-white">
+                                            <!-- Cascaded Platforms -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Date Created *</label>
+                                        <input type="date" id="intakeDateCreated" required class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Ticket Type *</label>
+                                        <select id="intakeTicketType" required class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main bg-white">
+                                            <option value="Campaign Launch">Campaign Launch</option>
+                                            <option value="Optimization">Optimization</option>
+                                            <option value="Troubleshooting">Troubleshooting</option>
+                                            <option value="Reporting Setup">Reporting Setup</option>
+                                            <option value="Audience Config">Audience Config</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Campaign Count</label>
+                                        <input type="number" id="intakeCampaignCount" min="0" value="0" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Insertion Orders Count</label>
+                                        <input type="number" id="intakeIOCount" min="0" value="0" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Due Date *</label>
+                                        <input type="date" id="intakeDueDate" required class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main">
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Request Lead Assignment *</label>
+                                        <select id="intakeRequestLead" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main bg-slate-50">
+                                            <!-- Cascaded Accredited Analysts -->
+                                        </select>
+                                    </div>
+                                    <div class="col-span-1 md:col-span-2">
+                                        <label class="block font-bold text-slate-600 mb-1">Additional Instructions</label>
+                                        <textarea id="intakeAdditionalInstructions" rows="3" placeholder="Provide any execution guidelines or target scopes..." class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main resize-none"></textarea>
+                                    </div>
+                                    <div class="col-span-1 md:col-span-2">
+                                        <label class="block font-bold text-slate-600 mb-1">Additional Collaborating Members</label>
+                                        <div id="intakeAdditionalMembers" class="grid grid-cols-2 gap-2 border border-slate-200 p-2.5 rounded-lg max-h-24 overflow-y-auto custom-scrollbar bg-slate-50">
+                                            <!-- Checkboxes -->
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
+                                    <button type="button" onclick="switchAppView('home')" class="px-4 py-2 text-xs font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200 transition">Cancel</button>
+                                    <button type="submit" class="px-4 py-2 text-xs font-bold text-white bg-powerapps-main hover:bg-powerapps-dark rounded-lg shadow-sm transition">
+                                        Submit Ticket
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+
+                    <!-- 1.3 APP VIEW: DETAIL & EDIT SCREEN -->
+                    <div id="appView-detail" class="p-2 sm:p-4 hidden">
+                        <div class="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-md p-6">
+                            <div class="border-b border-slate-100 pb-3 mb-4 flex justify-between items-center">
+                                <div>
+                                    <span id="detailTicketID" class="text-xs font-mono font-bold text-powerapps-main bg-powerapps-light px-2 py-0.5 rounded">TD-XXXX</span>
+                                    <h3 id="detailHeaderName" class="text-base font-bold text-slate-800 mt-1">Ticket Context</h3>
+                                </div>
+                                <button onclick="switchAppView('home')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+                            </div>
+
+
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs mb-4">
+                                <div>
+                                    <p class="text-slate-400 font-medium">Account</p>
+                                    <p class="font-bold text-slate-800" id="detailAccount">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400 font-medium">Platform</p>
+                                    <p class="font-bold text-slate-800" id="detailPlatform">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400 font-medium">Date Created</p>
+                                    <p class="font-bold text-slate-800" id="detailDateCreated">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400 font-medium">Ticket Type</p>
+                                    <p class="font-bold text-slate-800" id="detailTicketType">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400 font-medium">Request Lead</p>
+                                    <p class="font-bold text-slate-800" id="detailRequestLead">-</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400 font-medium">Collaborators</p>
+                                    <p class="font-bold text-slate-800 truncate" id="detailCollaborators">-</p>
+                                </div>
+                            </div>
+
+
+                            <div class="text-xs mb-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <p class="text-slate-400 font-medium mb-1">Additional Instructions</p>
+                                <p class="text-slate-700 italic" id="detailAdditionalInstructions">None provided.</p>
+                            </div>
+
+
+                            <hr class="border-slate-100 my-4">
+
+
+                            <!-- Edit Area (Role Trimmed) -->
+                            <div class="space-y-4 text-xs">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Ticket Status</label>
+                                        <select id="detailStatus" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none bg-white">
+                                            <option value="Assigned">Assigned</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="On Hold">On Hold</option>
+                                            <option value="Waiting for POC Input">Waiting for POC Input</option>
+                                            <option value="Completed">Completed</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block font-bold text-slate-600 mb-1">Hours Logged</label>
+                                        <input type="number" step="0.5" id="detailHours" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main">
+                                    </div>
+                                </div>
+
+
+                                <div>
+                                    <label class="block font-bold text-slate-600 mb-1">Jira Link</label>
+                                    <input type="url" id="detailLink" class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-powerapps-main">
+                                </div>
+
+
+                                <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-lg flex items-center justify-between">
+                                    <div>
+                                        <p class="font-bold text-indigo-950 flex items-center gap-1.5">
+                                            <i class="fa-brands fa-microsoft-teams text-indigo-600"></i>
+                                            Collaboration Workspace
+                                        </p>
+                                        <p class="text-[10px] text-indigo-700 mt-0.5">Automated secure Group Chat is active for this workspace.</p>
+                                    </div>
+                                    <a id="detailChatLink" href="#" target="_blank" class="px-3 py-1.5 bg-indigo-600 text-white font-bold rounded-md hover:bg-indigo-700 transition flex items-center gap-1 text-[11px] decoration-none">
+                                        Join Chat <i class="fa-solid fa-up-right-from-square text-[9px]"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+
+                            <div class="pt-5 border-t border-slate-100 mt-6 flex justify-between text-xs">
+                                <button onclick="deleteTicketConfirm()" id="detailDeleteBtn" class="px-3.5 py-2 font-bold text-rose-600 bg-rose-50 border border-rose-100 hover:bg-rose-100 rounded-lg transition">Delete Ticket</button>
+                                <div class="flex gap-2">
+                                    <button onclick="switchAppView('home')" class="px-4 py-2 font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200 transition">Cancel</button>
+                                    <button onclick="saveTicketDetails()" class="px-4 py-2 font-bold text-white bg-powerapps-main hover:bg-powerapps-dark rounded-lg shadow-sm transition">Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- 1.4 APP VIEW: TEAM WORKLOAD BOARD -->
+                    <div id="appView-workload" class="space-y-4 hidden">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-800">Operational Capacity Status Board</h3>
+                                <p class="text-xs text-slate-500">Live indicators based on 5 active tasks per accredited resource.</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="appWorkloadGrid">
+                            <!-- Populated Dynamically -->
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================== TAB 2: MS TEAMS (THEME STYLED) ============================== -->
+        <section id="tab-teams" class="h-full flex flex-col bg-msteams-darkBg hidden select-none text-slate-200">
+            <!-- Simulated MS Teams Browser Window -->
+            <div class="grow flex overflow-hidden">
+                <!-- Teams Left Sidebar -->
+                <div class="w-64 sm:w-72 bg-msteams-sidebar border-r border-msteams-border flex flex-col shrink-0">
+                    <div class="p-4 border-b border-msteams-border flex justify-between items-center bg-msteams-darkBg shrink-0">
+                        <span class="text-sm font-bold tracking-wide text-white flex items-center gap-2">
+                            <i class="fa-brands fa-microsoft-teams text-indigo-400 text-lg"></i>
+                            M365 Teams Chats
+                        </span>
+                        <span class="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">Portal</span>
+                    </div>
+                    
+                    <div class="p-3 shrink-0">
+                        <div class="relative">
+                            <i class="fa-solid fa-filter absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" placeholder="Filter active conversations..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded border border-neutral-700 bg-neutral-800 text-slate-200 outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+
+                    <!-- Active chats queue -->
+                    <div class="grow overflow-y-auto custom-scrollbar" id="teamsChatsList">
+                        <!-- Populated Dynamically -->
+                    </div>
+                </div>
+
+
+                <!-- Teams Chat Window -->
+                <div class="grow flex flex-col bg-msteams-activeChat overflow-hidden">
+                    <!-- Teams Active Workspace Header -->
+                    <div class="p-4 border-b border-msteams-border flex justify-between items-center bg-msteams-sidebar shrink-0" id="teamsActiveChatHeader">
+                        <div class="flex items-center gap-3">
+                            <div class="h-8 w-8 bg-indigo-900 text-indigo-200 flex items-center justify-center font-bold text-xs rounded shadow">
+                                <i class="fa-solid fa-hashtag text-indigo-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs sm:text-sm font-bold text-white truncate" id="activeChatTitle">Workspace Channel</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5" id="activeChatSubtitle">Status synchronized workspace</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                            <span class="bg-neutral-800 text-slate-300 px-2 py-1 rounded border border-neutral-700 flex items-center gap-1">
+                                <i class="fa-solid fa-lock text-[9px]"></i> Secure Sync Active
+                            </span>
+                        </div>
+                    </div>
+
+
+                    <!-- Chat Message Thread Scroller -->
+                    <div class="grow overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar flex flex-col" id="teamsMessageThread">
+                        <!-- Populated Dynamically -->
+                    </div>
+
+
+                    <!-- Chat Message Input Box -->
+                    <div class="p-4 border-t border-msteams-border bg-msteams-sidebar shrink-0 flex gap-2">
+                        <input type="text" id="teamsMessageInput" placeholder="Write a response inside this synced channel thread..." class="grow bg-neutral-800 border border-neutral-700 text-slate-200 rounded px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 outline-none">
+                        <button onclick="sendSimulatedChatMessage()" class="bg-msteams-purple hover:bg-indigo-600 text-white px-4 py-2 rounded text-xs font-bold transition shadow shrink-0">
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================== TAB 3: POWER BI (INTERACTIVE CARDS) ============================== -->
+        <section id="tab-powerbi" class="h-full flex flex-col bg-powerbi-greyBg hidden text-powerbi-text">
+            <!-- Power BI Menu Bar -->
+            <div class="bg-white border-b border-powerbi-border px-4 py-2 flex items-center justify-between shrink-0 shadow-sm flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="h-4 w-4 bg-powerbi-yellow rounded flex items-center justify-center font-black text-black text-[9px]">Y</span>
+                    <span class="font-bold text-xs sm:text-sm text-neutral-800">Workspace / TeamsDash Operations Hub</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="refreshPowerBI()" class="bg-white hover:bg-slate-50 border border-powerbi-border px-3 py-1.5 text-[11px] font-bold rounded flex items-center gap-1.5 transition text-slate-700 shadow-sm">
+                        <i class="fa-solid fa-arrows-rotate text-yellow-500"></i> Refresh Dataset
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- Dashboard Contents -->
+            <div class="grow overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar max-w-7xl mx-auto w-full">
+                
+                <!-- Info Callout Banner -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 text-xs text-blue-900 rounded-r shadow-sm">
+                    <p class="font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-question"></i> Clicking KPI cards drill downs into live records!
+                    </p>
+                    <p class="text-blue-700 mt-0.5">Click on any core parameter metric (Total, Completed, Backlog, Avg Completion) below to view its filtered list in real-time.</p>
+                </div>
+
+
+                <!-- Three Main KPI Metrics Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div onclick="drillDownMetric('ALL')" class="bg-powerbi-card p-5 rounded border border-powerbi-border shadow-sm hover:border-powerbi-yellow hover:shadow-md cursor-pointer transition relative group overflow-hidden">
+                        <div class="absolute right-3 top-3 text-slate-300 group-hover:text-powerbi-yellow text-lg transition"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Total Tickets</p>
+                        <p class="text-3xl font-black mt-1" id="pbiTotalTickets">0</p>
+                        <span class="text-[10px] text-blue-600 font-semibold group-hover:underline block mt-2">Drill Down Registry &rarr;</span>
+                    </div>
+                    <div onclick="drillDownMetric('Completed')" class="bg-powerbi-card p-5 rounded border border-powerbi-border shadow-sm hover:border-emerald-500 hover:shadow-md cursor-pointer transition relative group overflow-hidden">
+                        <div class="absolute right-3 top-3 text-slate-300 group-hover:text-emerald-500 text-lg transition"><i class="fa-solid fa-circle-check"></i></div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Completed Queue</p>
+                        <p class="text-3xl font-black mt-1 text-emerald-600" id="pbiCompletedTickets">0</p>
+                        <span class="text-[10px] text-emerald-600 font-semibold group-hover:underline block mt-2">Drill Down Registry &rarr;</span>
+                    </div>
+                    <div onclick="drillDownMetric('Active')" class="bg-powerbi-card p-5 rounded border border-powerbi-border shadow-sm hover:border-amber-500 hover:shadow-md cursor-pointer transition relative group overflow-hidden">
+                        <div class="absolute right-3 top-3 text-slate-300 group-hover:text-amber-500 text-lg transition"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Active Backlog</p>
+                        <p class="text-3xl font-black mt-1 text-amber-600" id="pbiActiveBacklog">0</p>
+                        <span class="text-[10px] text-amber-600 font-semibold group-hover:underline block mt-2">Drill Down Registry &rarr;</span>
+                    </div>
+                    <div onclick="drillDownMetric('AvgCompletion')" class="bg-powerbi-card p-5 rounded border border-powerbi-border shadow-sm hover:border-indigo-500 hover:shadow-md cursor-pointer transition relative group overflow-hidden">
+                        <div class="absolute right-3 top-3 text-slate-300 group-hover:text-indigo-500 text-lg transition"><i class="fa-solid fa-business-time"></i></div>
+                        <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Avg Completion Rate</p>
+                        <p class="text-3xl font-black mt-1 text-indigo-600" id="pbiAvgRate">0 hrs</p>
+                        <span class="text-[10px] text-indigo-600 font-semibold group-hover:underline block mt-2">Drill Down Completed Tasks &rarr;</span>
+                    </div>
+                </div>
+
+
+                <!-- Drill Down Container Panel (Hidden by default, shown upon metric clicks) -->
+                <div id="pbiDrillDownPanel" class="bg-white rounded-xl border border-powerapps-main/20 p-4 shadow-md hidden animate-fadeIn">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3 text-xs">
+                        <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-table-list text-powerapps-main"></i>
+                            Filtered Drill-Down Viewer: <span class="text-powerapps-main underline font-mono" id="drillDownTitle">All</span>
+                        </span>
+                        <button onclick="closeDrillDown()" class="text-slate-400 hover:text-slate-600 font-bold">&times; Close</button>
+                    </div>
+                    <div class="overflow-x-auto max-h-[250px] custom-scrollbar text-xs">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                                    <th class="py-2 px-3">Ticket ID</th>
+                                    <th class="py-2 px-3">Ticket Name</th>
+                                    <th class="py-2 px-3">Account</th>
+                                    <th class="py-2 px-3">Lead</th>
+                                    <th class="py-2 px-3">Status</th>
+                                    <th class="py-2 px-3">Type</th>
+                                    <th class="py-2 px-3">Date Created</th>
+                                    <th class="py-2 px-3 text-right">Hours Logged</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pbiDrillDownBody" class="divide-y divide-slate-100">
+                                <!-- Filtered outputs -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <!-- Charts Matrix (Including SVG Visualizer) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Chart Module A: Dynamic Status Share Horizontal Load -->
+                    <div class="bg-powerbi-card p-5 rounded border border-powerbi-border shadow-sm">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Volume Distribution by Ticket Status</h4>
+                        <div class="flex items-center justify-center py-4">
+                            <div class="w-full space-y-3.5" id="pbiBarChartContainer">
+                                <!-- Bars -->
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Chart Module B: Interactive SVG Team Workloads Dial -->
+                    <div class="bg-powerbi-card p-5 rounded border border-powerbi-border shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Dynamic Team Workload Balance</h4>
+                            <p class="text-[10px] text-slate-400 mb-4">Visual representation of live allocated workloads against maximum safe capacities (5 tasks max)</p>
+                        </div>
+                        
+                        <!-- Interactive SVG Rendering Area -->
+                        <div class="py-4 flex justify-center items-center">
+                            <div class="w-full max-w-md relative" id="pbiSvgChartContainer">
+                                <!-- Renders live via Javascript calculated coordinates -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Custom Report Builder Section in Power BI -->
+                <div class="bg-powerbi-card rounded border border-powerbi-border shadow-sm overflow-hidden">
+                    <div class="bg-slate-50 p-4 border-b border-powerbi-border">
+                        <h3 class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-sliders text-indigo-600"></i>
+                            Ad-Hoc Report Generation Workspace
+                        </h3>
+                    </div>
+
+
+                    <div class="p-4 grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Created Range Start</label>
+                            <input type="date" id="pbiStartDate" value="2026-05-01" class="w-full p-2 border border-slate-200 rounded outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Created Range End</label>
+                            <input type="date" id="pbiEndDate" value="2026-05-30" class="w-full p-2 border border-slate-200 rounded outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Client Filter</label>
+                            <select id="pbiClientFilter" class="w-full p-2 border border-slate-200 rounded outline-none bg-white">
+                                <option value="ALL">-- ALL --</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="generateCustomReport()" class="w-full bg-powerapps-main hover:bg-powerapps-dark text-white p-2 font-bold rounded transition shadow-sm">
+                                Generate Preview
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <div class="px-4 pb-4">
+                        <div class="border border-slate-200 rounded overflow-hidden">
+                            <div class="bg-slate-100 px-4 py-2 border-b border-slate-200 flex justify-between items-center text-xs">
+                                <span class="font-bold text-slate-700">Preview Data Frame Output</span>
+                                <div class="flex gap-2 text-[10px]">
+                                    <button onclick="exportToDataFormat('CSV')" class="font-bold text-emerald-700 hover:underline">Export CSV</button>
+                                    <span class="text-slate-300">|</span>
+                                    <button onclick="exportToDataFormat('JSON')" class="font-bold text-indigo-700 hover:underline">Export JSON</button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto max-h-[200px] custom-scrollbar text-xs">
+                                <table class="w-full text-left border-collapse text-slate-600">
+                                    <thead>
+                                        <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold uppercase text-slate-400">
+                                            <th class="py-2.5 px-4">Ticket ID</th>
+                                            <th class="py-2.5 px-4">Campaign Name</th>
+                                            <th class="py-2.5 px-4">Client</th>
+                                            <th class="py-2.5 px-4">Platform</th>
+                                            <th class="py-2.5 px-4">Lead</th>
+                                            <th class="py-2.5 px-4">Status</th>
+                                            <th class="py-2.5 px-4">Hours Logged</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pbiReportPreviewBody" class="divide-y divide-slate-100">
+                                        <!-- Rendered custom columns -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================== TAB 4: M365 ADMIN (STYLING MATED) ============================== -->
+        <section id="tab-admin" class="h-full flex flex-col bg-slate-50 hidden text-slate-700">
+            <!-- M365 Admin Command Header -->
+            <div class="bg-m365-dark text-white px-4 py-3 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-grid-2x2 text-sky-400"></i>
+                    <span class="text-xs sm:text-sm font-semibold">Microsoft 365 Admin Center</span>
+                </div>
+                <span class="text-[10px] bg-sky-800 text-white px-2 py-0.5 rounded font-bold font-mono">TeamsDash Mappings</span>
+            </div>
+
+
+            <!-- Configuration workspace content -->
+            <div class="grow overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar max-w-7xl mx-auto w-full">
+                <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold text-slate-800">M365 SharePoint Online Enterprise Repositories</h3>
+                    <p class="text-xs text-slate-500 mt-1">Configure active validation parameters across lookup directories without code alterations.</p>
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Config A: Team Members Directory -->
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center shrink-0">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">Team Members List</h4>
+                            <button onclick="openAdminModal('member')" class="text-[11px] font-bold text-sky-700 hover:underline">+ New Member</button>
+                        </div>
+                        <div class="grow overflow-y-auto max-h-[250px] p-3 custom-scrollbar">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-slate-400 pb-1 text-[10px] uppercase">
+                                        <th class="pb-2">Name</th>
+                                        <th class="pb-2">LLID</th>
+                                        <th class="pb-2">Email</th>
+                                        <th class="pb-2">Status</th>
+                                        <th class="pb-2 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminMembersTable" class="divide-y divide-slate-100">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <!-- Config B: Brand Platforms Catalog -->
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center shrink-0">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">Advertising Platforms</h4>
+                            <button onclick="openAdminModal('platform')" class="text-[11px] font-bold text-sky-700 hover:underline">+ New Platform</button>
+                        </div>
+                        <div class="grow overflow-y-auto max-h-[250px] p-3 custom-scrollbar">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-slate-400 pb-1 text-[10px] uppercase">
+                                        <th class="pb-2">Platform ID</th>
+                                        <th class="pb-2">Platform Name</th>
+                                        <th class="pb-2">State</th>
+                                        <th class="pb-2 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminPlatformsTable" class="divide-y divide-slate-100">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <!-- Config C: Account Platform Connection -->
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center shrink-0">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">Account Platforms Connection</h4>
+                            <button onclick="openAdminModal('mapping')" class="text-[11px] font-bold text-sky-700 hover:underline">+ New Connection</button>
+                        </div>
+                        <div class="grow overflow-y-auto max-h-[250px] p-3 custom-scrollbar">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-slate-400 pb-1 text-[10px] uppercase">
+                                        <th class="pb-2">Account Name</th>
+                                        <th class="pb-2">Mapped Platform</th>
+                                        <th class="pb-2">Status</th>
+                                        <th class="pb-2 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminMappingsTable" class="divide-y divide-slate-100">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+
+                    <!-- Config D: Resource Access Allocations -->
+                    <div class="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                        <div class="bg-slate-50 p-3 border-b border-slate-200 flex justify-between items-center shrink-0">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-600">Resource Access Mappings</h4>
+                            <button onclick="openAdminModal('access')" class="text-[11px] font-bold text-sky-700 hover:underline">+ Grant Accredit</button>
+                        </div>
+                        <div class="grow overflow-y-auto max-h-[250px] p-3 custom-scrollbar">
+                            <table class="w-full text-left text-xs text-slate-600">
+                                <thead>
+                                    <tr class="border-b border-slate-200 text-slate-400 pb-1 text-[10px] uppercase">
+                                        <th class="pb-2">Team Member</th>
+                                        <th class="pb-2">Account</th>
+                                        <th class="pb-2">Platform</th>
+                                        <th class="pb-2">Status</th>
+                                        <th class="pb-2 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminAccessTable" class="divide-y divide-slate-100">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+    </main>
+
+
+    <!-- Administrative Quick Addition Modals -->
+    <div id="adminModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
+            <div class="bg-slate-900 text-white px-5 py-3 flex justify-between items-center">
+                <h4 id="adminModalTitle" class="text-xs sm:text-sm font-bold">Configure Workspace Element</h4>
+                <button onclick="closeAdminModal()" class="text-white hover:text-slate-300 text-lg">&times;</button>
+            </div>
+            <form id="adminModalForm" onsubmit="handleAdminModalSubmit(event)" class="p-5 space-y-4 text-xs">
+                <input type="hidden" id="adminModalType">
+                
+                <div id="modalFieldsContainer">
+                    <!-- Dynamic -->
+                </div>
+
+
+                <div class="pt-4 border-t border-slate-100 flex justify-end gap-2">
+                    <button type="button" onclick="closeAdminModal()" class="px-4 py-2 font-bold text-slate-500 bg-slate-100 rounded-lg hover:bg-slate-200 transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow transition">Save Parameter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Active Footer status indicators -->
+    <footer class="bg-white border-t border-slate-200 shrink-0 text-[10px] sm:text-xs py-3 text-slate-500 z-10 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Active Live Sandbox Directory</span>
+            </div>
+            <div>
+                TeamsDash Environment &copy; 2026. Offline Compliant Sandbox Model.
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- ============================== HOVERING DYNAMIC SANDBOX OPTIMIZER CONTROL ============================== -->
+    <div class="fixed bottom-14 right-4 sm:right-6 z-50">
+        <button onclick="toggleOptimizerMenu()" class="h-12 w-12 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-full flex items-center justify-center text-white shadow-2xl hover:scale-105 active:scale-95 transition-all outline-none border-2 border-white" title="Optimize Sandbox Persona Mode">
+            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+        </button>
+        
+        <!-- Hover Expandable Menu Context Card -->
+        <div id="optimizerMenu" class="absolute bottom-14 right-0 bg-white border border-slate-200 shadow-2xl rounded-2xl w-72 sm:w-80 p-4 space-y-3 hidden animate-fadeIn text-xs">
+            <div class="border-b border-slate-100 pb-2 flex items-center justify-between">
+                <div>
+                    <h4 class="font-black text-slate-800 flex items-center gap-1">
+                        <i class="fa-solid fa-user-gear text-indigo-600"></i> Persona Simulator
+                    </h4>
+                    <p class="text-[10px] text-slate-400">Select simulated profile &amp; security role</p>
+                </div>
+                <button onclick="toggleOptimizerMenu()" class="text-slate-400 hover:text-slate-600">&times;</button>
+            </div>
+
+
+            <div class="space-y-1">
+                <label class="block font-bold text-slate-500 text-[10px] uppercase">Simulate Active Operator Profile</label>
+                <div class="space-y-1.5" id="optimizerProfilesGrid">
+                    <!-- Profile Buttons injected via JS -->
+                </div>
+            </div>
+
+
+            <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg text-[10px] text-indigo-900 leading-normal">
+                <p class="font-bold flex items-center gap-1 mb-0.5">
+                    <i class="fa-solid fa-shield-halved text-[9px]"></i> Security Trimming Active
+                </p>
+                <p>Swapping active personas updates accessible modules, forms, editable queues, and view capabilities immediately.</p>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- ============================== CORE SIMULATION SCRIPT ENGINE ============================== -->
+    <script>
+        // Enhanced Master Database spanning multiple high-tier client accounts
+        let teamMembers = [
+            { id: "TM-001", fullName: "Akash Gupta", email: "a.gupta@org.com", llid: "AG102", active: true, role: "Analyst" },
+            { id: "TM-002", fullName: "Sarah Jenkins", email: "s.jenkins@org.com", llid: "SJ504", active: true, role: "Analyst" },
+            { id: "TM-003", fullName: "John Doe", email: "j.doe@org.com", llid: "JD009", active: true, role: "Assignor" },
+            { id: "TM-004", fullName: "Claire Mercer", email: "c.mercer@org.com", llid: "CM041", active: true, role: "Manager" }
+        ];
+
+
+        let platforms = [
+            { id: "PL-001", name: "Google Ads", active: true },
+            { id: "PL-002", name: "Meta Ads", active: true },
+            { id: "PL-003", name: "DV360", active: true },
+            { id: "PL-004", name: "TikTok Ads", active: true }
+        ];
+
+
+        let accountPlatformMappings = [
+            { id: "MAP-001", account: "Chevron", platform: "Google Ads", active: true },
+            { id: "MAP-002", account: "Chevron", platform: "DV360", active: true },
+            { id: "MAP-003", account: "Nike", platform: "Meta Ads", active: true },
+            { id: "MAP-004", account: "Nike", platform: "TikTok Ads", active: true },
+            { id: "MAP-005", account: "Target", platform: "DV360", active: true },
+            { id: "MAP-006", account: "Starbucks", platform: "Google Ads", active: true },
+            { id: "MAP-007", account: "Starbucks", platform: "TikTok Ads", active: true },
+            { id: "MAP-008", account: "Walmart", platform: "Google Ads", active: true }
+        ];
+
+
+        let accessMappings = [
+            { id: "ACC-001", memberEmail: "a.gupta@org.com", account: "Chevron", platform: "Google Ads", active: true },
+            { id: "ACC-002", memberEmail: "a.gupta@org.com", account: "Walmart", platform: "Google Ads", active: true },
+            { id: "ACC-003", memberEmail: "s.jenkins@org.com", account: "Nike", platform: "Meta Ads", active: true },
+            { id: "ACC-004", memberEmail: "s.jenkins@org.com", account: "Chevron", platform: "Google Ads", active: true },
+            { id: "ACC-005", memberEmail: "s.jenkins@org.com", account: "Starbucks", platform: "Google Ads", active: true },
+            { id: "ACC-006", memberEmail: "j.doe@org.com", account: "Target", platform: "DV360", active: true },
+            { id: "ACC-007", memberEmail: "j.doe@org.com", account: "Chevron", platform: "DV360", active: true },
+            { id: "ACC-008", memberEmail: "c.mercer@org.com", account: "Starbucks", platform: "TikTok Ads", active: true }
+        ];
+
+
+        // Expanded enriched list of dummy tickets
+        let tickets = [
+            {
+                id: "TD-2026-001",
+                name: "Starbucks Q3 Product Push",
+                link: "https://jira.enterprise-corp.com/browse/SEM-101",
+                account: "Starbucks",
+                platform: "Google Ads",
+                campaigns: 8,
+                ios: 2,
+                lead: "s.jenkins@org.com",
+                additional: ["a.gupta@org.com"],
+                status: "In Progress",
+                hours: 6.5,
+                chatId: "chat-starbucks-google-001",
+                dateCreated: "2026-05-10",
+                dueDate: "2026-06-05",
+                completedDate: "",
+                ticketType: "Campaign Launch",
+                additionalInstructions: "Coordinate live bids targeting cold-brew product parameters closely.",
+                chatHistory: [
+                    { sender: "System Bot", text: "Secure dynamic workspace group chat provisioned." }
+                ]
+            },
+            {
+                id: "TD-2026-002",
+                name: "Walmart Keyword Optimization Sweep",
+                link: "https://jira.enterprise-corp.com/browse/SEM-102",
+                account: "Walmart",
+                platform: "Google Ads",
+                campaigns: 0,
+                ios: 0,
+                lead: "a.gupta@org.com",
+                additional: [],
+                status: "Assigned",
+                hours: 1.5,
+                chatId: "chat-walmart-google-002",
+                dateCreated: "2026-05-18",
+                dueDate: "2026-06-10",
+                completedDate: "",
+                ticketType: "Optimization",
+                additionalInstructions: "Perform a total review of low-converting long-tail keyword entities.",
+                chatHistory: [
+                    { sender: "System Bot", text: "Walmart Keyword Optimization channel established." }
+                ]
+            },
+            {
+                id: "TD-2026-003",
+                name: "Chevron Conversion Tag Audit",
+                link: "https://jira.enterprise-corp.com/browse/AUD-303",
+                account: "Chevron",
+                platform: "Google Ads",
+                campaigns: 0,
+                ios: 0,
+                lead: "a.gupta@org.com",
+                additional: ["s.jenkins@org.com"],
+                status: "Waiting for POC Input",
+                hours: 2.0,
+                chatId: "chat-chevron-google-003",
+                dateCreated: "2026-05-20",
+                dueDate: "2026-06-03",
+                completedDate: "",
+                ticketType: "Troubleshooting",
+                additionalInstructions: "Review global tag container errors within modern edge browser configurations.",
+                chatHistory: [
+                    { sender: "System Bot", text: "Audit sandbox generated. Tag checks are active." }
+                ]
+            },
+            {
+                id: "TD-2026-004",
+                name: "Nike Summer Runner Campaign",
+                link: "https://jira.enterprise-corp.com/browse/SEM-104",
+                account: "Nike",
+                platform: "Meta Ads",
+                campaigns: 15,
+                ios: 5,
+                lead: "s.jenkins@org.com",
+                additional: [],
+                status: "Completed",
+                hours: 12.0,
+                chatId: "chat-nike-meta-004",
+                dateCreated: "2026-05-05",
+                dueDate: "2026-05-25",
+                completedDate: "2026-05-25",
+                ticketType: "Campaign Launch",
+                additionalInstructions: "Verify summer catalogs are synchronized before running creative allocations.",
+                chatHistory: [
+                    { sender: "System Bot", text: "Nike Runner campaign completed successfully." }
+                ]
+            },
+            {
+                id: "TD-2026-005",
+                name: "Target Programmatic Banners Launch",
+                link: "https://jira.enterprise-corp.com/browse/SEM-105",
+                account: "Target",
+                platform: "DV360",
+                campaigns: 12,
+                ios: 4,
+                lead: "j.doe@org.com",
+                additional: ["a.gupta@org.com"],
+                status: "Completed",
+                hours: 18.0,
+                chatId: "chat-target-dv360-005",
+                dateCreated: "2026-05-02",
+                dueDate: "2026-05-22",
+                completedDate: "2026-05-22",
+                ticketType: "Campaign Launch",
+                additionalInstructions: "Check programmatic supply sources for optimal CPM ratios.",
+                chatHistory: [
+                    { sender: "System Bot", text: "Dynamic workspace finalized." }
+                ]
+            }
+        ];
+
+
+        // Active State Profile System (Simulator Personas)
+        let simulatedUser = {
+            fullName: "Claire Mercer",
+            email: "c.mercer@org.com",
+            role: "Manager" // Administrator
+        };
+
+
+        let activeChatChannelId = "chat-starbucks-google-001";
+        let activeEditTicketId = null;
+
+
+        window.onload = function() {
+            triggerNotification("Active context set to M365 Manager: Claire Mercer.");
+            updateClock();
+            setInterval(updateClock, 1000);
+
+
+            // Seed Date Created to current date
+            const dateInput = document.getElementById('intakeDateCreated');
+            if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+
+            // Rebuild Entire Matrix
+            rebuildAllDropdowns();
+            renderOptimizerProfiles();
+            applyActivePersonaContext();
+        };
+
+
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            const timeStr = `${hours}:${minutes} ${ampm}`;
+            const clockEl = document.getElementById('simulatedClock');
+            if (clockEl) clockEl.innerText = timeStr;
+        }
+
+
+        // Global Toast Notification Helper
+        function triggerNotification(text) {
+            const banner = document.getElementById('systemNotification');
+            const textEl = document.getElementById('notificationText');
+            textEl.innerText = text;
+            banner.classList.remove('hidden');
+            setTimeout(dismissNotification, 6000);
+        }
+
+
+        function dismissNotification() {
+            document.getElementById('systemNotification').classList.add('hidden');
+        }
+
+
+        // Simulated Switch Tab Handler
+        function switchMasterTab(tabId) {
+            ['powerapp', 'teams', 'powerbi', 'admin'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`tabBtn-${t}`).className = "px-2.5 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold flex items-center gap-2 text-slate-400 hover:text-white transition-all";
+            });
+
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            // Set Tab-Specific Platform Aesthetics
+            let activeColor = "text-white bg-powerapps-accent shadow-inner";
+            if (tabId === 'teams') activeColor = "text-white bg-[#6264a7] shadow-inner";
+            if (tabId === 'powerbi') activeColor = "text-slate-900 bg-yellow-400 shadow-md";
+            if (tabId === 'admin') activeColor = "text-white bg-sky-600 shadow-inner";
+
+
+            document.getElementById(`tabBtn-${tabId}`).className = `px-2.5 sm:px-4 py-1.5 rounded-md text-xs sm:text-sm font-semibold flex items-center gap-2 ${activeColor} transition-all`;
+
+
+            if (tabId === 'powerbi') refreshPowerBI();
+            if (tabId === 'teams') {
+                document.getElementById('teamsChatBadge').classList.add('hidden');
+                renderTeamsElements();
+            }
+        }
+
+
+        // Subview Transition within Power Apps Tab
+        function switchAppView(viewId) {
+            ['home', 'intake', 'detail', 'workload'].forEach(v => {
+                document.getElementById(`appView-${v}`).classList.add('hidden');
+            });
+            document.getElementById(`appView-${viewId}`).classList.remove('hidden');
+
+
+            ['home', 'workload'].forEach(btn => {
+                const el = document.getElementById(`appNav-${btn}`);
+                if (el) {
+                    if (btn === viewId) {
+                        el.className = "px-2.5 sm:px-3 py-1 rounded text-[11px] sm:text-xs font-semibold transition bg-powerapps-accent text-white shadow-inner";
+                    } else {
+                        el.className = "px-2.5 sm:px-3 py-1 rounded text-[11px] sm:text-xs font-semibold transition hover:bg-powerapps-accent text-powerapps-light";
+                    }
+                }
+            });
+
+
+            if (viewId === 'home') renderAppGallery();
+            if (viewId === 'workload') renderWorkloadMetrics();
+        }
+
+
+        // Cascade Account/Platform Drops mapping logic
+        function rebuildAllDropdowns() {
+            const accSelect = document.getElementById('intakeAccount');
+            accSelect.innerHTML = "";
+            const uniqueAccounts = [...new Set(accountPlatformMappings.filter(m => m.active).map(m => m.account))];
+            uniqueAccounts.forEach(acc => {
+                const opt = document.createElement('option');
+                opt.value = acc;
+                opt.innerText = acc;
+                accSelect.appendChild(opt);
+            });
+
+
+            handleAccountChange();
+
+
+            const rptFilter = document.getElementById('pbiClientFilter');
+            rptFilter.innerHTML = '<option value="ALL">-- ALL --</option>';
+            uniqueAccounts.forEach(acc => {
+                const opt = document.createElement('option');
+                opt.value = acc;
+                opt.innerText = acc;
+                rptFilter.appendChild(opt);
+            });
+        }
+
+
+        function handleAccountChange() {
+            const selectedAccount = document.getElementById('intakeAccount').value;
+            const platSelect = document.getElementById('intakePlatform');
+            platSelect.innerHTML = "";
+
+
+            const matchedPlatforms = accountPlatformMappings
+                .filter(m => m.active && m.account === selectedAccount)
+                .map(m => m.platform);
+
+
+            matchedPlatforms.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.innerText = p;
+                platSelect.appendChild(opt);
+            });
+
+
+            handlePlatformChange();
+        }
+
+
+        function handlePlatformChange() {
+            const selectedAccount = document.getElementById('intakeAccount').value;
+            const selectedPlatform = document.getElementById('intakePlatform').value;
+            const leadSelect = document.getElementById('intakeRequestLead');
+            leadSelect.innerHTML = "";
+
+
+            const accreditedEmails = accessMappings
+                .filter(a => a.active && a.account === selectedAccount && a.platform === selectedPlatform)
+                .map(a => a.memberEmail);
+
+
+            const matches = teamMembers.filter(m => m.active && accreditedEmails.includes(m.email));
+
+
+            if (matches.length > 0) {
+                matches.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.email;
+                    opt.innerText = `${m.fullName} (${m.email})`;
+                    leadSelect.appendChild(opt);
+                });
+            } else {
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.innerText = "No accredited staff mapped for selected combination";
+                leadSelect.appendChild(opt);
+            }
+
+
+            const addBox = document.getElementById('intakeAdditionalMembers');
+            addBox.innerHTML = "";
+            teamMembers.filter(m => m.active).forEach(m => {
+                const wrap = document.createElement('label');
+                wrap.className = "flex items-center gap-1.5 p-1 hover:bg-slate-100 rounded text-[11px] cursor-pointer";
+                wrap.innerHTML = `
+                    <input type="checkbox" name="intakeCollab" value="${m.email}" class="rounded border-slate-300 text-powerapps-main focus:ring-powerapps-main">
+                    <span class="truncate">${m.fullName}</span>
+                `;
+                addBox.appendChild(wrap);
+            });
+        }
+
+
+        // Render Power Apps gallery scoped via persona access boundaries
+        function renderAppGallery() {
+            const gallery = document.getElementById('appTicketGallery');
+            const searchVal = document.getElementById('appSearchInput').value.toLowerCase();
+            gallery.innerHTML = "";
+
+
+            // Role-based visibility trimming (Row-Level Security simulation in Power App)
+            let baseData = tickets;
+            if (simulatedUser.role === "Analyst") {
+                // Analysts see tickets where they are Request Lead or a Collaborator
+                baseData = tickets.filter(t => t.lead === simulatedUser.email || t.additional.includes(simulatedUser.email));
+            }
+
+
+            let results = baseData.filter(t => 
+                t.id.toLowerCase().includes(searchVal) ||
+                t.name.toLowerCase().includes(searchVal) ||
+                t.account.toLowerCase().includes(searchVal) ||
+                t.platform.toLowerCase().includes(searchVal)
+            );
+
+
+            // Compute dynamic quick indicators based on current filtered view context
+            let myActive = 0;
+            let unassigned = 0;
+            let totalActive = 0;
+
+
+            tickets.forEach(t => {
+                if (t.status !== 'Completed') {
+                    totalActive++;
+                    if (t.lead === simulatedUser.email) myActive++;
+                    if (!t.lead) unassigned++;
+                }
+            });
+
+
+            document.getElementById('appMyActiveCount').innerText = myActive;
+            document.getElementById('appUnassignedCount').innerText = unassigned;
+            document.getElementById('appTotalActiveCount').innerText = totalActive;
+
+
+            if (results.length === 0) {
+                gallery.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="py-10 text-center text-slate-400">
+                            <i class="fa-solid fa-folder-open text-2xl block mb-2 text-slate-300"></i>
+                            No ticket records found in your queue.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+
+            results.forEach(t => {
+                const leadName = getMemberName(t.lead);
+                const statusColor = getStatusBadgeStyle(t.status);
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                row.innerHTML = `
+                    <td class="py-3 px-4 font-mono font-bold text-powerapps-main">${t.id}</td>
+                    <td class="py-3 px-4 font-semibold text-slate-900">
+                        ${t.name}
+                        <p class="text-[9px] text-slate-400 flex items-center gap-1 mt-0.5">
+                            <i class="fa-solid fa-link"></i>
+                            <span class="truncate max-w-[120px]">${t.link}</span>
+                        </p>
+                    </td>
+                    <td class="py-3 px-4 font-bold text-slate-700">${t.account}</td>
+                    <td class="py-3 px-4 font-medium text-slate-600">${t.platform}</td>
+                    <td class="py-3 px-4 text-slate-600">${leadName}</td>
+                    <td class="py-3 px-4 text-slate-500 font-mono">${t.dueDate}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full font-bold text-[9px] ${statusColor}">${t.status}</span></td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="openAppDetailView('${t.id}')" class="px-2 py-1 bg-powerapps-light hover:bg-purple-200 text-powerapps-main rounded text-[11px] font-bold">
+                            View
+                        </button>
+                    </td>
+                `;
+                gallery.appendChild(row);
+            });
+        }
+
+
+        function filterAppGallery() {
+            renderAppGallery();
+        }
+
+
+        function getMemberName(email) {
+            const m = teamMembers.find(t => t.email === email);
+            return m ? m.fullName : "Unassigned";
+        }
+
+
+        function getStatusBadgeStyle(status) {
+            switch(status) {
+                case "Assigned": return "bg-blue-100 text-blue-800 border border-blue-200";
+                case "In Progress": return "bg-indigo-100 text-indigo-800 border border-indigo-200";
+                case "On Hold": return "bg-rose-100 text-rose-800 border border-rose-200";
+                case "Waiting for POC Input": return "bg-amber-100 text-amber-800 border border-amber-200";
+                case "Completed": return "bg-emerald-100 text-emerald-800 border border-emerald-200";
+                default: return "bg-slate-100 text-slate-800 border border-slate-200";
+            }
+        }
+
+
+        function openAppDetailView(ticketId) {
+            const t = tickets.find(x => x.id === ticketId);
+            if (!t) return;
+
+
+            activeEditTicketId = ticketId;
+            document.getElementById('detailTicketID').innerText = t.id;
+            document.getElementById('detailHeaderName').innerText = t.name;
+            document.getElementById('detailAccount').innerText = t.account;
+            document.getElementById('detailPlatform').innerText = t.platform;
+            document.getElementById('detailDateCreated').innerText = t.dateCreated || "N/A";
+            document.getElementById('detailTicketType').innerText = t.ticketType || "N/A";
+            document.getElementById('detailRequestLead').innerText = getMemberName(t.lead);
+            document.getElementById('detailCollaborators').innerText = t.additional.length > 0 ? t.additional.map(getMemberName).join(", ") : "None";
+            document.getElementById('detailAdditionalInstructions').innerText = t.additionalInstructions || "No instructions provided.";
+            
+            document.getElementById('detailStatus').value = t.status;
+            document.getElementById('detailHours').value = t.hours;
+            document.getElementById('detailLink').value = t.link;
+
+
+            const chatLink = document.getElementById('detailChatLink');
+            chatLink.href = `javascript:joinTeamsChatViaLink('${t.chatId}')`;
+
+
+            // Security limits on actions
+            const deleteBtn = document.getElementById('detailDeleteBtn');
+            if (simulatedUser.role === "Analyst") {
+                deleteBtn.classList.add('hidden');
+            } else {
+                deleteBtn.classList.remove('hidden');
+            }
+
+
+            switchAppView('detail');
+        }
+
+
+        function saveTicketDetails() {
+            const t = tickets.find(x => x.id === activeEditTicketId);
+            if (!t) return;
+
+
+            const oldStatus = t.status;
+            const newStatus = document.getElementById('detailStatus').value;
+            const newHours = parseFloat(document.getElementById('detailHours').value) || 0.0;
+            const newLink = document.getElementById('detailLink').value;
+
+
+            t.status = newStatus;
+            t.hours = newHours;
+            t.link = newLink;
+
+
+            if (newStatus === "Completed" && oldStatus !== "Completed") {
+                t.completedDate = new Date().toISOString().split('T')[0];
+                t.chatHistory.push({
+                    sender: "System Bot",
+                    text: `STATUS UPDATE: Work package marked Completed with ${newHours} hours logged.`
+                });
+            } else if (newStatus !== oldStatus) {
+                t.chatHistory.push({
+                    sender: "System Bot",
+                    text: `STATUS UPDATE: State modified from ${oldStatus} to ${newStatus}.`
+                });
+            }
+
+
+            triggerNotification(`Saved changes for ticket: ${t.id}.`);
+            switchAppView('home');
+            refreshPowerBI();
+        }
+
+
+        function deleteTicketConfirm() {
+            if (confirm("Are you sure you want to delete this ticket from the active repository?")) {
+                tickets = tickets.filter(t => t.id !== activeEditTicketId);
+                triggerNotification("Ticket removed.");
+                switchAppView('home');
+                refreshPowerBI();
+            }
+        }
+
+
+        function handleIntakeSubmit(e) {
+            e.preventDefault();
+
+
+            const name = document.getElementById('intakeTicketName').value;
+            const link = document.getElementById('intakeTicketLink').value;
+            const account = document.getElementById('intakeAccount').value;
+            const platform = document.getElementById('intakePlatform').value;
+            const dateCreated = document.getElementById('intakeDateCreated').value;
+            const ticketType = document.getElementById('intakeTicketType').value;
+            const campaigns = parseInt(document.getElementById('intakeCampaignCount').value) || 0;
+            const ios = parseInt(document.getElementById('intakeIOCount').value) || 0;
+            const duedate = document.getElementById('intakeDueDate').value;
+            const lead = document.getElementById('intakeRequestLead').value;
+            const instructions = document.getElementById('intakeAdditionalInstructions').value;
+
+
+            if (!lead) {
+                alert("Please select a Request Lead accredited via active M365 Access Mappings.");
+                return;
+            }
+
+
+            const checks = document.querySelectorAll('input[name="intakeCollab"]:checked');
+            const additional = Array.from(checks).map(el => el.value);
+
+
+            const newId = `TD-2026-0${tickets.length + 1}`;
+            const cleanChatId = `chat-${account.toLowerCase()}-${platform.toLowerCase()}-${newId.split('-').pop()}`;
+
+
+            const newTicket = {
+                id: newId,
+                name: name,
+                link: link,
+                account: account,
+                platform: platform,
+                campaigns: campaigns,
+                ios: ios,
+                lead: lead,
+                additional: additional,
+                status: "Assigned",
+                hours: 0.0,
+                chatId: cleanChatId,
+                dateCreated: dateCreated,
+                dueDate: duedate,
+                completedDate: "",
+                ticketType: ticketType,
+                additionalInstructions: instructions || "No special instructions provided.",
+                chatHistory: [
+                    { sender: "System Bot", text: `Secure Group Chat initialized for Ticket: ${newId}.` },
+                    { sender: "System Bot", text: `Assigned Lead: ${getMemberName(lead)}. Collaborators: ${additional.map(getMemberName).join(', ') || 'None'}` }
+                ]
+            };
+
+
+            tickets.unshift(newTicket);
+            activeChatChannelId = cleanChatId;
+
+
+            const badge = document.getElementById('teamsChatBadge');
+            badge.classList.remove('hidden');
+            badge.innerText = parseInt(badge.innerText || 0) + 1;
+
+
+            document.getElementById('intakeForm').reset();
+            document.getElementById('intakeDateCreated').value = new Date().toISOString().split('T')[0];
+
+
+            triggerNotification(`Ticket ${newId} logged successfully! Synced chat initialized in Teams.`);
+            switchAppView('home');
+            refreshPowerBI();
+        }
+
+
+        function renderWorkloadMetrics() {
+            const container = document.getElementById('appWorkloadGrid');
+            container.innerHTML = "";
+
+
+            teamMembers.filter(m => m.active).forEach(analyst => {
+                const activeCount = tickets.filter(t => t.lead === analyst.email && t.status !== "Completed").length;
+                const percentage = Math.min((activeCount / 5) * 100, 100);
+                
+                let barColor = "bg-emerald-500";
+                let badgeStyle = "bg-emerald-100 text-emerald-800";
+                if (activeCount >= 5) {
+                    barColor = "bg-rose-500";
+                    badgeStyle = "bg-rose-100 text-rose-800 font-bold animate-pulse";
+                } else if (activeCount >= 3) {
+                    barColor = "bg-amber-500";
+                    badgeStyle = "bg-amber-100 text-amber-800";
+                }
+
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="h-9 w-9 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center font-bold text-xs uppercase border border-slate-200">
+                                ${analyst.fullName.split(' ').map(n=>n[0]).join('')}
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-800">${analyst.fullName}</h4>
+                                <p class="text-[10px] text-slate-400 font-mono">${analyst.email}</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] ${badgeStyle}">${activeCount} / 5 Open Tasks</span>
+                    </div>
+
+
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px] font-semibold text-slate-500">
+                            <span>Capacity Load Status</span>
+                            <span>${percentage}%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div class="h-full ${barColor}" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+
+        // ============================== MS TEAMS ACTIVE SIMULATION ==============================
+        function renderTeamsElements() {
+            const list = document.getElementById('teamsChatsList');
+            list.innerHTML = "";
+
+
+            // Display channels matching persona's security boundaries
+            let chatsData = tickets;
+            if (simulatedUser.role === "Analyst") {
+                chatsData = tickets.filter(t => t.lead === simulatedUser.email || t.additional.includes(simulatedUser.email));
+            }
+
+
+            chatsData.forEach(t => {
+                const isSelected = t.chatId === activeChatChannelId;
+                const activeBg = isSelected ? 'bg-[#333337] text-white border-l-4 border-[#6264a7]' : 'hover:bg-neutral-800 text-neutral-400 hover:text-slate-200';
+                
+                const channelBtn = document.createElement('button');
+                channelBtn.onclick = () => selectTeamsChat(t.chatId);
+                channelBtn.className = `w-full p-3 flex items-start gap-2.5 text-left border-b border-neutral-800 text-xs transition ${activeBg}`;
+                channelBtn.innerHTML = `
+                    <span class="text-indigo-400 text-sm mt-0.5"><i class="fa-solid fa-hashtag"></i></span>
+                    <div class="truncate">
+                        <p class="font-bold truncate text-neutral-200">${t.id}: ${t.account} | ${t.platform}</p>
+                        <p class="text-[10px] text-slate-400 truncate mt-0.5">${t.name}</p>
+                    </div>
+                `;
+                list.appendChild(channelBtn);
+            });
+
+
+            const activeT = tickets.find(t => t.chatId === activeChatChannelId);
+            const thread = document.getElementById('teamsMessageThread');
+            thread.innerHTML = "";
+
+
+            if (activeT) {
+                document.getElementById('activeChatTitle').innerText = `${activeT.id}: ${activeT.account} | ${activeT.platform}`;
+                document.getElementById('activeChatSubtitle').innerText = `Lead: ${getMemberName(activeT.lead)} | ${activeT.name}`;
+                
+                // Adaptive Card
+                const card = document.createElement('div');
+                card.className = "bg-[#2f2f33] text-white border border-neutral-700 rounded-xl max-w-sm sm:max-w-md shadow-lg overflow-hidden shrink-0";
+                card.innerHTML = `
+                    <div class="bg-indigo-700 text-white px-4 py-2 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-brands fa-microsoft-teams"></i> M365 Adaptive Status Card
+                    </div>
+                    <div class="p-4 space-y-3">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-indigo-300 text-sm">${activeT.id}</span>
+                            <span class="px-2 py-0.5 bg-neutral-800 border border-neutral-700 text-slate-300 rounded font-bold">${activeT.status}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-300 border-b border-neutral-700 pb-2">
+                            <span>Client: <strong>${activeT.account}</strong></span>
+                            <span>Platform: <strong>${activeT.platform}</strong></span>
+                            <span>Type: <strong>${activeT.ticketType || "N/A"}</strong></span>
+                            <span>Due Date: <strong>${activeT.dueDate}</strong></span>
+                        </div>
+                        <div class="space-y-2 text-xs">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 mb-0.5">Status Transition</label>
+                                <select id="teamsCardStatus" class="w-full text-xs p-1 bg-neutral-800 border border-neutral-700 rounded text-white outline-none">
+                                    <option value="Assigned" ${activeT.status === "Assigned" ? "selected" : ""}>Assigned</option>
+                                    <option value="In Progress" ${activeT.status === "In Progress" ? "selected" : ""}>In Progress</option>
+                                    <option value="On Hold" ${activeT.status === "On Hold" ? "selected" : ""}>On Hold</option>
+                                    <option value="Waiting for POC Input" ${activeT.status === "Waiting for POC Input" ? "selected" : ""}>Waiting for POC Input</option>
+                                    <option value="Completed" ${activeT.status === "Completed" ? "selected" : ""}>Completed</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 mb-0.5">Hours Spent</label>
+                                <input type="number" step="0.5" id="teamsCardHours" value="${activeT.hours}" class="w-full text-xs p-1 bg-neutral-800 border border-neutral-700 rounded text-white outline-none">
+                            </div>
+                        </div>
+                        <button onclick="commitTeamsAdaptiveCardUpdate('${activeT.chatId}')" class="w-full bg-[#6264a7] hover:bg-indigo-600 text-white font-bold py-1.5 rounded text-xs transition">
+                            Save Status to SharePoint
+                        </button>
+                    </div>
+                `;
+                thread.appendChild(card);
+
+
+                activeT.chatHistory.forEach(msg => {
+                    const msgWrap = document.createElement('div');
+                    msgWrap.className = "flex gap-2.5 items-start max-w-lg text-xs self-start";
+                    let prefix = msg.sender;
+                    let blockStyle = "bg-neutral-800 text-slate-200 border border-neutral-700";
+                    if (msg.sender === "System Bot") {
+                        blockStyle = "bg-neutral-900 border border-neutral-800 text-indigo-400";
+                    }
+
+
+                    msgWrap.innerHTML = `
+                        <div class="h-7 w-7 rounded-full bg-indigo-900 text-indigo-200 flex items-center justify-center font-bold text-[10px] shrink-0 border border-indigo-700">
+                            ${msg.sender.split(' ').map(n=>n[0]).join('')}
+                        </div>
+                        <div class="p-2.5 rounded-lg ${blockStyle}">
+                            <div class="text-[9px] font-bold opacity-70 mb-0.5">${prefix}</div>
+                            <p class="leading-relaxed">${msg.text}</p>
+                        </div>
+                    `;
+                    thread.appendChild(msgWrap);
+                });
+
+
+                thread.scrollTop = thread.scrollHeight;
+            } else {
+                thread.innerHTML = `
+                    <div class="m-auto text-center text-slate-500 py-12">
+                        <i class="fa-brands fa-microsoft-teams text-5xl text-neutral-600 mb-2"></i>
+                        <p class="text-xs">Select an active workspace group chat to synchronize data.</p>
+                    </div>
+                `;
+            }
+        }
+
+
+        function selectTeamsChat(chatId) {
+            activeChatChannelId = chatId;
+            renderTeamsElements();
+        }
+
+
+        function sendSimulatedChatMessage() {
+            const input = document.getElementById('teamsMessageInput');
+            const txt = input.value.trim();
+            if (!txt) return;
+
+
+            const t = tickets.find(x => x.chatId === activeChatChannelId);
+            if (t) {
+                t.chatHistory.push({
+                    sender: simulatedUser.fullName,
+                    text: txt
+                });
+                input.value = "";
+                renderTeamsElements();
+            }
+        }
+
+
+        function commitTeamsAdaptiveCardUpdate(chatId) {
+            const t = tickets.find(x => x.chatId === chatId);
+            if (!t) return;
+
+
+            const nS = document.getElementById('teamsCardStatus').value;
+            const nH = parseFloat(document.getElementById('teamsCardHours').value) || 0.0;
+            const oS = t.status;
+
+
+            t.status = nS;
+            t.hours = nH;
+
+
+            if (nS === "Completed" && oS !== "Completed") {
+                t.completedDate = new Date().toISOString().split('T')[0];
+            }
+
+
+            t.chatHistory.push({
+                sender: "System Bot",
+                text: `ADAPTIVE CARD SUBMIT: Params saved. Status: ${nS}, Logged: ${nH} hrs.`
+            });
+
+
+            triggerNotification(`SharePoint sync completed for Ticket ${t.id}!`);
+            renderTeamsElements();
+            refreshPowerBI();
+        }
+
+
+        function joinTeamsChatViaLink(chatId) {
+            switchMasterTab('teams');
+            selectTeamsChat(chatId);
+        }
+
+
+        // ============================== POWER BI CORE METRICS ENGINE ==============================
+        let drillDownStatusFilter = "ALL";
+
+
+        function refreshPowerBI() {
+            // Aggregate organization statistics dynamically
+            const total = tickets.length;
+            const completed = tickets.filter(t => t.status === "Completed").length;
+            const active = total - completed;
+
+
+            const totalHours = tickets.filter(t => t.status === "Completed").reduce((sum, t) => sum + t.hours, 0);
+            const avgRate = completed > 0 ? (totalHours / completed).toFixed(1) : "0.0";
+
+
+            document.getElementById('pbiTotalTickets').innerText = total;
+            document.getElementById('pbiCompletedTickets').innerText = completed;
+            document.getElementById('pbiActiveBacklog').innerText = active;
+            document.getElementById('pbiAvgRate').innerText = `${avgRate} hrs`;
+
+
+            // Draw Chart A: Horizontal status ratios
+            const containerA = document.getElementById('pbiBarChartContainer');
+            containerA.innerHTML = "";
+
+
+            const statuses = ["Assigned", "In Progress", "On Hold", "Waiting for POC Input", "Completed"];
+            statuses.forEach(st => {
+                const cnt = tickets.filter(t => t.status === st).length;
+                const ratio = total > 0 ? Math.round((cnt / total) * 100) : 0;
+                
+                const bar = document.createElement('div');
+                bar.className = "space-y-1 text-xs";
+                bar.innerHTML = `
+                    <div class="flex justify-between font-semibold text-slate-600">
+                        <span>${st}</span>
+                        <span>${cnt} (${ratio}%)</span>
+                    </div>
+                   <div class="w-full bg-slate-100 h-2 rounded overflow-hidden">
+                        <div class="h-full bg-indigo-600 transition-all duration-500" style="width: ${ratio}%"></div>
+                    </div>
+                `;
+                containerA.appendChild(bar);
+            });
+
+
+            // Draw Chart B: Interactive Live SVG Team Capacity Balance
+            drawTeamWorkloadsSVG();
+            
+            // Re-run ad-hoc preview
+            generateCustomReport();
+            
+            // Update active drilldown if open
+            if (!document.getElementById('pbiDrillDownPanel').classList.contains('hidden')) {
+                drillDownMetric(drillDownStatusFilter);
+            }
+        }
+
+
+        // Clickable KPIs Drill Down implementation
+        function drillDownMetric(filterType) {
+            drillDownStatusFilter = filterType;
+            const panel = document.getElementById('pbiDrillDownPanel');
+            const title = document.getElementById('drillDownTitle');
+            const tbody = document.getElementById('pbiDrillDownBody');
+            tbody.innerHTML = "";
+
+
+            let subset = tickets;
+            if (filterType === "Completed") {
+                subset = tickets.filter(t => t.status === "Completed");
+                title.innerText = "Completed Tickets Queue Only";
+            } else if (filterType === "Active") {
+                subset = tickets.filter(t => t.status !== "Completed");
+                title.innerText = "Active Backlog Operational Queue";
+            } else if (filterType === "AvgCompletion") {
+                subset = tickets.filter(t => t.status === "Completed" && t.hours > 0);
+                title.innerText = "Completed Tickets with Logged Time";
+            } else {
+                title.innerText = "All Active Repository Tickets";
+            }
+
+
+            if (subset.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-4 text-center text-slate-400">No matching ticket entries found.</td></tr>`;
+            } else {
+                subset.forEach(t => {
+                    const row = document.createElement('tr');
+                    row.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                    row.innerHTML = `
+                        <td class="py-2 px-3 font-mono font-bold text-powerapps-main">${t.id}</td>
+                        <td class="py-2 px-3 font-semibold text-slate-900">${t.name}</td>
+                        <td class="py-2 px-3 font-bold text-slate-700">${t.account}</td>
+                        <td class="py-2 px-3 text-slate-600">${getMemberName(t.lead)}</td>
+                        <td class="py-2 px-3"><span class="px-2 py-0.5 rounded text-[9px] font-bold ${getStatusBadgeStyle(t.status)}">${t.status}</span></td>
+                        <td class="py-2 px-3 text-slate-500">${t.ticketType || "N/A"}</td>
+                        <td class="py-2 px-3 font-mono text-slate-500">${t.dateCreated}</td>
+                        <td class="py-2 px-3 font-mono text-right font-bold text-slate-700">${t.hours.toFixed(1)} hrs</td>
+                    `;
+                   tbody.appendChild(row);
+                });
+            }
+
+
+            panel.classList.remove('hidden');
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+
+        function closeDrillDown() {
+            document.getElementById('pbiDrillDownPanel').classList.add('hidden');
+        }
+
+
+        // Draws dynamic workloads using an interactive scalable SVG chart
+        function drawTeamWorkloadsSVG() {
+            const container = document.getElementById('pbiSvgChartContainer');
+            container.innerHTML = "";
+
+
+            const activeLeads = teamMembers.filter(m => m.active);
+            const svgWidth = 400;
+            const svgHeight = 180;
+            
+            let svgMarkup = `
+                <svg viewBox="0 0 ${svgWidth} ${svgHeight}" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Background Grid Lines -->
+                    <line x1="120" y1="20" x2="380" y2="20" stroke="#f3f2f1" stroke-width="1" stroke-dasharray="3"/>
+                    <line x1="120" y1="60" x2="380" y2="60" stroke="#f3f2f1" stroke-width="1" stroke-dasharray="3"/>
+                    <line x1="120" y1="100" x2="380" y2="100" stroke="#f3f2f1" stroke-width="1" stroke-dasharray="3"/>
+                    <line x1="120" y1="140" x2="380" y2="140" stroke="#f3f2f1" stroke-width="1" stroke-dasharray="3"/>
+                    
+                    <text x="120" y="170" fill="#a19f9d" font-size="9" text-anchor="middle">0</text>
+                    <text x="185" y="170" fill="#a19f9d" font-size="9" text-anchor="middle">1</text>
+                    <text x="250" y="170" fill="#a19f9d" font-size="9" text-anchor="middle">2</text>
+                    <text x="315" y="170" fill="#a19f9d" font-size="9" text-anchor="middle">3</text>
+                    <text x="380" y="170" fill="#a19f9d" font-size="9" text-anchor="middle">4+</text>
+            `;
+
+
+            activeLeads.forEach((m, idx) => {
+                const count = tickets.filter(t => t.lead === m.email && t.status !== "Completed").length;
+                const barY = 20 + (idx * 38);
+                const maxBarWidth = 260;
+                
+                // Calculate scale of bar relative to capacity
+                const barWidth = Math.min((count / 4) * maxBarWidth, maxBarWidth);
+                
+                let loadColor = "#107c41"; // Emerald safe
+                if (count >= 5) loadColor = "#a80000"; // Red overallocated
+                else if (count >= 3) loadColor = "#c83c00"; // Orange warning
+
+
+                svgMarkup += `
+                    <!-- Team Member Text Label -->
+                    <text x="10" y="${barY + 14}" fill="#323130" font-size="11" font-weight="bold">${m.fullName}</text>
+                    
+                    <!-- Max Capacity Boundary Guideline -->
+                    <rect x="120" y="${barY}" width="${maxBarWidth}" height="20" fill="#f3f2f1" rx="3"/>
+                    
+                    <!-- Interactive Colored Workload Bar -->
+                    <rect x="120" y="${barY}" width="${barWidth}" height="20" fill="${loadColor}" rx="3">
+                        <animate attributeName="width" from="0" to="${barWidth}" dur="0.8s" fill="freeze" />
+                    </rect>
+                    
+                    <!-- Value Text label overlay -->
+                    <text x="${125 + barWidth}" y="${barY + 14}" fill="#323130" font-size="10" font-weight="bold">${count}</text>
+                `;
+            });
+
+
+            svgMarkup += `</svg>`;
+            container.innerHTML = svgMarkup;
+        }
+
+
+        function generateCustomReport() {
+            const start = document.getElementById('pbiStartDate').value;
+            const end = document.getElementById('pbiEndDate').value;
+            const client = document.getElementById('pbiClientFilter').value;
+
+
+            const tbody = document.getElementById('pbiReportPreviewBody');
+            tbody.innerHTML = "";
+
+
+            const subset = tickets.filter(t => {
+                const dateOk = (!start || t.dateCreated >= start) && (!end || t.dateCreated <= end);
+                const clientOk = (client === "ALL" || t.account === client);
+                return dateOk && clientOk;
+            });
+          if (subset.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No records found matching the criteria.</td></tr>`;
+                return;
+            }
+
+
+            subset.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-2.5 px-4 font-mono font-bold text-slate-700">${t.id}</td>
+                    <td class="py-2.5 px-4 font-semibold text-slate-950">${t.name}</td>
+                    <td class="py-2.5 px-4">${t.account}</td>
+                    <td class="py-2.5 px-4">${t.platform}</td>
+                    <td class="py-2.5 px-4">${getMemberName(t.lead)}</td>
+                    <td class="py-2.5 px-4"><span class="px-2 py-0.5 rounded text-[9px] font-bold ${getStatusBadgeStyle(t.status)}">${t.status}</span></td>
+                    <td class="py-2.5 px-4 font-mono font-bold text-slate-800">${t.hours.toFixed(1)} hrs</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+
+        function exportToDataFormat(type) {
+            triggerNotification(`Mock export generated! Completed file packaged: report_extract.${type.toLowerCase()}`);
+        }
+
+
+        // ============================== M365 ADMIN PANELS ==============================
+        function renderAdminBoards() {
+            // Team Members
+            const membersBody = document.getElementById('adminMembersTable');
+            membersBody.innerHTML = "";
+            teamMembers.forEach(m => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100 hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-2 font-bold text-slate-800">${m.fullName}</td>
+                    <td class="py-2 font-mono text-[10px]">${m.llid}</td>
+                    <td class="py-2 text-slate-500">${m.email}</td>
+                    <td class="py-2">
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${m.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                            ${m.active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="py-2 text-right">
+                        <button onclick="toggleMemberState('${m.id}')" class="text-[10px] text-sky-600 hover:underline">
+                            ${m.active ? 'Deactivate' : 'Activate'}
+                        </button>
+                    </td>
+                `;
+                membersBody.appendChild(tr);
+            });
+
+
+            // Active Platforms
+            const platBody = document.getElementById('adminPlatformsTable');
+            platBody.innerHTML = "";
+            platforms.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100 hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-2 font-mono text-[10px] font-bold text-slate-800">${p.id}</td>
+                    <td class="py-2 font-medium text-slate-700">${p.name}</td>
+                    <td class="py-2">
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${p.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                            ${p.active ? 'Active' : 'Deprecate'}
+                        </span>
+                    </td>
+                    <td class="py-2 text-right">
+                        <button onclick="togglePlatformState('${p.id}')" class="text-[10px] text-sky-600 hover:underline">
+                            ${p.active ? 'Deprecate' : 'Activate'}
+                        </button>
+                    </td>
+                `;
+                platBody.appendChild(tr);
+            });
+
+
+            // Account Connections
+            const mapBody = document.getElementById('adminMappingsTable');
+            mapBody.innerHTML = "";
+            accountPlatformMappings.forEach(map => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100 hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-2 font-bold text-slate-800">${map.account}</td>
+                    <td class="py-2 font-medium text-slate-600">${map.platform}</td>
+                    <td class="py-2">
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${map.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                            ${map.active ? 'Active' : 'Revoked'}
+                        </span>
+                    </td>
+                    <td class="py-2 text-right">
+                        <button onclick="toggleMappingState('${map.id}')" class="text-[10px] text-sky-600 hover:underline">
+                            ${map.active ? 'Revoke' : 'Activate'}
+                        </button>
+                    </td>
+                `;
+                mapBody.appendChild(tr);
+            });
+
+
+            // Access Accreditation Mapping
+            const accBody = document.getElementById('adminAccessTable');
+            accBody.innerHTML = "";
+            accessMappings.forEach(acc => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-100 hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="py-2 text-slate-800 font-medium">${getMemberName(acc.memberEmail)}</td>
+                    <td class="py-2 font-bold text-slate-700">${acc.account}</td>
+                    <td class="py-2 font-semibold text-slate-600">${acc.platform}</td>
+                    <td class="py-2">
+                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${acc.active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}">
+                            ${acc.active ? 'Granted' : 'Revoked'}
+                        </span>
+                    </td>
+                    <td class="py-2 text-right">
+                        <button onclick="toggleAccessState('${acc.id}')" class="text-[10px] text-sky-600 hover:underline">
+                            ${acc.active ? 'Revoke' : 'Grant'}
+                        </button>
+                    </td>
+                `;
+                accBody.appendChild(tr);
+            });
+        }
+
+
+        function toggleMemberState(id) {
+            const m = teamMembers.find(x => x.id === id);
+            if (m) {
+                m.active = !m.active;
+                triggerNotification(`User state updated.`);
+                renderAdminBoards();
+                rebuildAllDropdowns();
+                applyActivePersonaContext();
+            }
+        }
+function togglePlatformState(id) {
+            const p = platforms.find(x => x.id === id);
+            if (p) {
+                p.active = !p.active;
+                triggerNotification(`Platform catalog altered.`);
+                renderAdminBoards();
+                rebuildAllDropdowns();
+            }
+        }
+
+
+        function toggleMappingState(id) {
+            const map = accountPlatformMappings.find(x => x.id === id);
+            if (map) {
+                map.active = !map.active;
+                triggerNotification(`Account map modified.`);
+                renderAdminBoards();
+                rebuildAllDropdowns();
+            }
+        }
+
+
+        function toggleAccessState(id) {
+            const acc = accessMappings.find(x => x.id === id);
+            if (acc) {
+                acc.active = !acc.active;
+                triggerNotification(`Accreditation constraints altered.`);
+                renderAdminBoards();
+                rebuildAllDropdowns();
+            }
+        }
+
+
+        function openAdminModal(type) {
+            const modal = document.getElementById('adminModal');
+            const title = document.getElementById('adminModalTitle');
+            const typeInput = document.getElementById('adminModalType');
+            const fields = document.getElementById('modalFieldsContainer');
+
+
+            typeInput.value = type;
+            fields.innerHTML = "";
+            modal.classList.remove('hidden');
+
+
+            if (type === 'member') {
+                title.innerText = "Provision Team Member Record";
+                fields.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Corporate Name *</label>
+                            <input type="text" id="addMemberName" required class="w-full text-xs p-2 border border-slate-200 rounded" placeholder="Johnathan Smith">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">LLID Value *</label>
+                            <input type="text" id="addMemberLLID" required class="w-full text-xs p-2 border border-slate-200 rounded" placeholder="JS304">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Entra ID Verified Email *</label>
+                            <input type="email" id="addMemberEmail" required class="w-full text-xs p-2 border border-slate-200 rounded" placeholder="j.smith@org.com">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">System Security Role *</label>
+                            <select id="addMemberRole" required class="w-full text-xs p-2 border border-slate-200 rounded">
+                                <option value="Analyst">Analyst</option>
+                                <option value="Assignor">Assignor</option>
+                                <option value="Manager">Manager</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'platform') {
+                title.innerText = "Register Advertising Brand Channel";
+                fields.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Platform Name *</label>
+                            <input type="text" id="addPlatformName" required class="w-full text-xs p-2 border border-slate-200 rounded" placeholder="LinkedIn Ads">
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'mapping') {
+                title.innerText = "Provision Account Platform Connection Matrix";
+                const opts = platforms.filter(p=>p.active).map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+                fields.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Account Name *</label>
+                            <input type="text" id="addMapAccount" required class="w-full text-xs p-2 border border-slate-200 rounded" placeholder="Target">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Platform Type *</label>
+                            <select id="addMapPlatform" class="w-full text-xs p-2 border border-slate-200 rounded">
+                                ${opts}
+                            </select>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'access') {
+                title.innerText = "Accredit Resource Access Map";
+                const userOpts = teamMembers.filter(m=>m.active).map(m=>`<option value="${m.email}">${m.fullName} (${m.email})</option>`).join('');
+                const uniqueAccounts = [...new Set(accountPlatformMappings.filter(m => m.active).map(m => m.account))];
+                const accOpts = uniqueAccounts.map(a=>`<option value="${a}">${a}</option>`).join('');
+                const platOpts = platforms.filter(p=>p.active).map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+
+
+                fields.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Team Member *</label>
+                            <select id="addAccessMember" class="w-full text-xs p-2 border border-slate-200 rounded">
+                                ${userOpts}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Account Scope *</label>
+                            <select id="addAccessAccount" class="w-full text-xs p-2 border border-slate-200 rounded">
+                                ${accOpts}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-600 mb-1">Platform Scope *</label>
+                            <select id="addAccessPlatform" class="w-full text-xs p-2 border border-slate-200 rounded">
+                                ${platOpts}
+                            </select>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+        }
+
+
+        function handleAdminModalSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('adminModalType').value;
+
+
+            if (type === 'member') {
+                const name = document.getElementById('addMemberName').value;
+                const llid = document.getElementById('addMemberLLID').value;
+                const email = document.getElementById('addMemberEmail').value;
+                const r = document.getElementById('addMemberRole').value;teamMembers.push({
+                    id: `TM-0${teamMembers.length + 1}`,
+                    fullName: name,
+                    email: email,
+                    llid: llid,
+                    active: true,
+                    role: r
+                });
+            } else if (type === 'platform') {
+                const name = document.getElementById('addPlatformName').value;
+                platforms.push({
+                    id: `PL-0${platforms.length + 1}`,
+                    name: name,
+                    active: true
+                });
+            } else if (type === 'mapping') {
+                const acc = document.getElementById('addMapAccount').value;
+                const plat = document.getElementById('addMapPlatform').value;
+
+
+                accountPlatformMappings.push({
+                    id: `MAP-0${accountPlatformMappings.length + 1}`,
+                    account: acc,
+                    platform: plat,
+                    active: true
+                });
+            } else if (type === 'access') {
+                const email = document.getElementById('addAccessMember').value;
+                const acc = document.getElementById('addAccessAccount').value;
+                const plat = document.getElementById('addAccessPlatform').value;
+
+
+                const exists = accessMappings.some(a=>a.memberEmail === email && a.account === acc && a.platform === plat);
+                if (!exists) {
+                    accessMappings.push({
+                        id: `ACC-0${accessMappings.length + 1}`,
+                        memberEmail: email,
+                        account: acc,
+                        platform: plat,
+                        active: true
+                    });
+                }
+            }
+
+
+            triggerNotification(`Parameter saved successfully!`);
+            closeAdminModal();
+            rebuildAllDropdowns();
+            renderAdminBoards();
+            applyActivePersonaContext();
+        }
+
+
+        // ============================== HOVERING PERSONA OPTIMIZER ==============================
+        function toggleOptimizerMenu() {
+            const menu = document.getElementById('optimizerMenu');
+            menu.classList.toggle('hidden');
+        }
+
+
+        function renderOptimizerProfiles() {
+            const grid = document.getElementById('optimizerProfilesGrid');
+            grid.innerHTML = "";
+
+
+            teamMembers.forEach(m => {
+                const btn = document.createElement('button');
+                btn.onclick = () => selectSimulatedPersona(m.email);
+                btn.className = "w-full p-2 rounded-lg border text-left flex items-center justify-between hover:bg-slate-50 transition";
+                
+                let activeBorder = "border-slate-200";
+                let checkIcon = "";
+                if (simulatedUser.email === m.email) {
+                    activeBorder = "border-indigo-600 bg-indigo-50/50";
+                    checkIcon = `<i class="fa-solid fa-circle-check text-indigo-600"></i>`;
+                }
+
+
+                btn.className += ` ${activeBorder}`;
+                btn.innerHTML = `
+                    <div>
+                        <p class="font-bold text-slate-800">${m.fullName}</p>
+                        <p class="text-[9px] text-slate-400 font-mono">${m.role}</p>
+                    </div>
+                    ${checkIcon}
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+
+        function selectSimulatedPersona(email) {
+            const member = teamMembers.find(t => t.email === email);
+            if (member) {
+                simulatedUser = {
+                    fullName: member.fullName,
+                    email: member.email,
+                    role: member.role
+                };
+                
+                triggerNotification(`Swapped active operator persona context: ${simulatedUser.fullName} (${simulatedUser.role})`);
+                toggleOptimizerMenu();
+                renderOptimizerProfiles();
+                applyActivePersonaContext();
+            }
+        }
+
+
+        // Security limits are applied organization-wide upon swapping active user roles
+        function applyActivePersonaContext() {
+            // 1. Label contextualizations
+            document.getElementById('appContextLabel').innerText = `Simulation Context: ${simulatedUser.fullName} (${simulatedUser.role})`;
+
+
+            // 2. Hide administrative modules to non-managers
+            const tabAdminBtn = document.getElementById('tabBtn-admin');
+            if (simulatedUser.role !== "Manager") {
+                tabAdminBtn.classList.add('hidden');
+                // Ensure they are kicked out of Admin tab if they were in it
+                if (!document.getElementById('tab-admin').classList.contains('hidden')) {
+                    switchMasterTab('powerapp');
+                }
+            } else {
+                tabAdminBtn.classList.remove('hidden');
+            }
+
+
+            // 3. Control Intake & Assignment access: Analysts cannot log new tickets or assign roles
+            const appNewTicketBtn = document.getElementById('appNewTicketBtn');
+            if (simulatedUser.role === "Analyst") {
+                appNewTicketBtn.classList.add('hidden');
+            } else {
+                appNewTicketBtn.classList.remove('hidden');
+            }
+
+
+            // Reload Active Layout Directories
+            rebuildAllDropdowns();
+            renderAppGallery();
+            renderTeamsElements();
+            renderWorkloadMetrics();
+            refreshPowerBI();
+            renderAdminBoards();
+        }
+    </script>
+</body>
+</html>

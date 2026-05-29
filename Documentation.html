@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TeamsDash — Enterprise Solution Design Document</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+<style>
+  :root {
+    --primary: #0f3460;
+    --accent: #1a6fc4;
+    --accent2: #16c79a;
+    --danger: #e94560;
+    --warn: #f5a623;
+    --bg: #f4f7fb;
+    --surface: #ffffff;
+    --sidebar-w: 280px;
+    --text: #1a2332;
+    --muted: #6b7a90;
+    --border: #d6e0f0;
+    --heading-font: 'Segoe UI', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: row; }
+
+  /* MOBILE HEADER */
+  #mobile-header {
+    display: none;
+    background: var(--primary);
+    color: #fff;
+    padding: 15px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  #mobile-header h2 { color: var(--accent2); font-size: 18px; font-weight: 700; }
+  .menu-toggle {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: var(--sidebar-w); min-height: 100vh; background: var(--primary);
+    position: fixed; top: 0; left: 0; overflow-y: auto; z-index: 100;
+    display: flex; flex-direction: column;
+    transition: transform 0.3s ease;
+  }
+  #sidebar .logo {
+    padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  #sidebar .logo h2 { color: var(--accent2); font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+  #sidebar .logo p { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 4px; }
+  #sidebar nav { flex: 1; padding: 12px 0; }
+  #sidebar nav a {
+    display: block; padding: 9px 20px; color: rgba(255,255,255,0.75);
+    text-decoration: none; font-size: 13px; border-left: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  #sidebar nav a:hover, #sidebar nav a.active {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border-left-color: var(--accent2);
+  }
+  #sidebar nav .section-label {
+    padding: 16px 20px 4px; color: rgba(255,255,255,0.35);
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  }
+
+  /* MAIN CONTENT */
+  #main { margin-left: var(--sidebar-w); flex: 1; max-width: calc(100% - var(--sidebar-w)); }
+
+  /* COVER */
+  #cover {
+    background: linear-gradient(135deg, #0f3460 0%, #1a6fc4 60%, #16c79a 100%);
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    align-items: center; text-align: center; padding: 60px 40px; position: relative; overflow: hidden;
+  }
+  #cover::before {
+    content: ''; position: absolute; top: -100px; right: -100px;
+    width: 500px; height: 500px; border-radius: 50%;
+    background: rgba(255,255,255,0.04); pointer-events: none;
+  }
+  #cover .cover-badge {
+    background: rgba(22,199,154,0.2); border: 1px solid rgba(22,199,154,0.5);
+    color: var(--accent2); font-size: 12px; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; padding: 6px 18px; border-radius: 20px; margin-bottom: 28px;
+  }
+  #cover h1 { color: #fff; font-size: 54px; font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+  #cover h1 span { color: var(--accent2); }
+  #cover .cover-sub { color: rgba(255,255,255,0.8); font-size: 20px; margin-top: 16px; max-width: 600px; }
+  #cover .cover-meta {
+    margin-top: 48px; display: flex; gap: 40px; flex-wrap: wrap; justify-content: center;
+  }
+  #cover .meta-item { color: rgba(255,255,255,0.7); font-size: 13px; }
+  #cover .meta-item strong { color: #fff; display: block; font-size: 15px; margin-bottom: 2px; }
+  #cover .cover-tags { margin-top: 36px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  #cover .tag {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.85); font-size: 12px; padding: 5px 14px; border-radius: 20px;
+  }
+
+  /* SECTIONS */
+  .section { padding: 60px 60px; border-bottom: 1px solid var(--border); }
+  .section:nth-child(even) { background: #f9fbfd; }
+  .section-header { margin-bottom: 36px; }
+  .section-number {
+    color: var(--accent2); font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  .section h2 {
+    font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1.2;
+    border-bottom: 3px solid var(--accent2); padding-bottom: 12px; display: inline-block;
+  }
+  .section h3 { font-size: 20px; font-weight: 700; color: var(--primary); margin: 32px 0 14px; }
+  .section h4 { font-size: 16px; font-weight: 600; color: var(--accent); margin: 20px 0 10px; }
+  .section p { line-height: 1.8; color: #334; margin-bottom: 14px; font-size: 15px; }
+
+  /* CARDS */
+  .card-grid { display: grid; gap: 20px; margin: 24px 0; }
+  .card-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .card-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .card-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .card.accent-left { border-left: 4px solid var(--accent); }
+  .card.accent-green { border-left: 4px solid var(--accent2); }
+  .card.accent-warn { border-left: 4px solid var(--warn); }
+  .card.accent-danger { border-left: 4px solid var(--danger); }
+  .card h4 { margin-top: 0; }
+  .card p { margin-bottom: 0; font-size: 14px; }
+
+  /* DIAGRAMS */
+  .diagram-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px; margin: 24px 0; box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    overflow-x: auto;
+  }
+  .diagram-box .diagram-title {
+    font-size: 13px; font-weight: 700; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 20px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+  .mermaid { text-align: center; min-width: 600px; }
+
+  /* WIREFRAMES */
+  .wireframe {
+    background: #1a2332; border-radius: 12px; padding: 24px; margin: 24px 0;
+    font-family: 'Courier New', monospace; font-size: 13px; color: #a8c0d6;
+    overflow-x: auto; line-height: 1.6; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .wireframe pre { white-space: pre; color: #c8daf0; }
+
+  /* TABLES */
+  .table-responsive { overflow-x: auto; margin: 20px 0; border: 1px solid var(--border); border-radius: 12px; }
+  .data-table { width: 100%; border-collapse: collapse; margin: 0; font-size: 14px; min-width: 600px; }
+  .data-table th {
+    background: var(--primary); color: #fff; padding: 12px 16px;
+    text-align: left; font-weight: 600; font-size: 13px;
+  }
+  .data-table td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .data-table tr:hover td { background: #f0f6ff; }
+  .data-table .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-pk { background: #e8f4ff; color: #0066cc; }
+  .badge-fk { background: #fff0e0; color: #cc6600; }
+  .badge-req { background: #e8fff4; color: #006633; }
+  .badge-opt { background: #f5f5f5; color: #666; }
+
+  /* CALLOUTS */
+  .callout {
+    border-radius: 10px; padding: 16px 20px; margin: 16px 0;
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .callout-info { background: #e8f4ff; border-left: 4px solid var(--accent); }
+  .callout-success { background: #e6fff5; border-left: 4px solid var(--accent2); }
+  .callout-warn { background: #fff8e1; border-left: 4px solid var(--warn); }
+  .callout-danger { background: #ffe8ec; border-left: 4px solid var(--danger); }
+  .callout-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+  .callout-body p { margin: 0; font-size: 14px; line-height: 1.6; }
+  .callout-body strong { display: block; margin-bottom: 4px; font-size: 13px; }
+
+  /* STEPS */
+  .steps { margin: 20px 0; }
+  .step {
+    display: flex; gap: 18px; align-items: flex-start; margin-bottom: 20px;
+    padding: 18px; background: var(--surface); border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .step-num {
+    width: 36px; height: 36px; background: var(--primary); color: #fff;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px; flex-shrink: 0;
+  }
+  .step-body h4 { margin: 0 0 6px; font-size: 15px; }
+  .step-body p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  /* SPEC LISTS */
+  .spec-list { list-style: none; margin: 12px 0; }
+  .spec-list li {
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; display: flex; justify-content: space-between; align-items: center;
+    gap: 15px;
+  }
+  .spec-list li:last-child { border-bottom: none; }
+  .spec-label { font-weight: 600; color: var(--primary); flex-shrink: 0; }
+  .spec-value { color: var(--muted); font-size: 13px; text-align: right; max-width: 60%; word-break: break-word; }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: #1a2332; border-radius: 10px; padding: 20px;
+    font-family: 'Courier New', monospace; font-size: 13px; color: #a8d8f0;
+    overflow-x: auto; margin: 16px 0; line-height: 1.7;
+  }
+  .code-block .kw { color: #7ec8e3; }
+  .code-block .str { color: #98d88a; }
+  .code-block .cmt { color: #6a8a6a; font-style: italic; }
+  .code-block .fn { color: #f0c040; }
+
+  /* ADAPTIVE CARD MOCKUP */
+  .adaptive-card {
+    background: #f3f2f1; border: 1px solid #d2d0ce; border-radius: 4px;
+    max-width: 500px; width: 100%; overflow: hidden; margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .adaptive-card .ac-header {
+    background: #0f3460; padding: 16px 20px; color: #fff;
+  }
+  .adaptive-card .ac-header h3 { font-size: 16px; margin: 0; }
+  .adaptive-card .ac-header p { font-size: 12px; opacity: 0.7; margin: 4px 0 0; }
+  .adaptive-card .ac-body { padding: 16px 20px; }
+  .adaptive-card .ac-row {
+    display: flex; justify-content: space-between; margin-bottom: 10px;
+    font-size: 13px; gap: 10px;
+  }
+  .adaptive-card .ac-label { color: #605e5c; font-weight: 600; flex-shrink: 0; }
+  .adaptive-card .ac-value { color: #201f1e; text-align: right; }
+  .adaptive-card .ac-divider { border: none; border-top: 1px solid #d2d0ce; margin: 12px 0; }
+  .adaptive-card .ac-input {
+    width: 100%; padding: 8px 10px; border: 1px solid #d2d0ce;
+    border-radius: 2px; font-size: 13px; margin-bottom: 8px;
+    background: #fff; font-family: inherit;
+  }
+  .adaptive-card select.ac-input { background: #fff; }
+  .adaptive-card .ac-actions { padding: 12px 20px; background: #f8f7f6; border-top: 1px solid #d2d0ce; display: flex; gap: 10px; flex-wrap: wrap; }
+  .ac-btn {
+    padding: 8px 18px; border-radius: 2px; font-size: 13px;
+    font-weight: 600; cursor: pointer; border: none; font-family: inherit;
+  }
+  .ac-btn-primary { background: #0f3460; color: #fff; }
+  .ac-btn-secondary { background: transparent; border: 1px solid #0f3460 !important; color: #0f3460; }
+
+  /* STATUS BADGES */
+  .status {
+    display: inline-block; padding: 3px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 600;
+  }
+  .status-assigned { background: #e0f0ff; color: #0066cc; }
+  .status-inprogress { background: #fff3cd; color: #856404; }
+  .status-onhold { background: #fde2e2; color: #c00; }
+  .status-waiting { background: #f0e6ff; color: #6600cc; }
+  .status-complete { background: #d4edda; color: #155724; }
+
+  /* TOC */
+  #toc .toc-list { list-style: none; }
+  #toc .toc-list li { margin-bottom: 6px; }
+  #toc .toc-list a {
+    color: var(--accent); text-decoration: none; font-size: 15px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  #toc .toc-list a:hover { color: var(--primary); }
+  #toc .toc-num { color: var(--muted); font-size: 13px; min-width: 30px; }
+  #toc .toc-sub { padding-left: 30px; margin-top: 4px; }
+  #toc .toc-sub a { font-size: 13px; color: var(--muted); }
+
+  /* SECURITY MATRIX */
+  .matrix-responsive { overflow-x: auto; margin: 20px 0; border: 1px solid var(--border); border-radius: 12px; }
+  .matrix-table { width: 100%; border-collapse: collapse; margin: 0; font-size: 13px; min-width: 600px; }
+  .matrix-table th, .matrix-table td { border: 1px solid var(--border); padding: 10px 14px; text-align: center; }
+  .matrix-table th { background: var(--primary); color: #fff; }
+  .matrix-table th:first-child, .matrix-table td:first-child { text-align: left; font-weight: 600; }
+  .matrix-table .yes { color: #16a34a; font-size: 18px; }
+  .matrix-table .no { color: #dc2626; font-size: 18px; }
+  .matrix-table .cond { color: #d97706; font-size: 18px; }
+
+  /* ROADMAP */
+  .roadmap { display: flex; gap: 0; margin: 24px 0; position: relative; }
+  .roadmap::before {
+    content: ''; position: absolute; top: 28px; left: 0; right: 0;
+    height: 4px; background: var(--border); z-index: 0;
+  }
+  .phase {
+    flex: 1; text-align: center; padding: 0 12px; position: relative; z-index: 1;
+  }
+  .phase-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 18px; margin: 0 auto 16px; border: 4px solid var(--surface);
+  }
+  .phase-circle.current { background: var(--accent2); color: #fff; }
+  .phase-circle.future1 { background: var(--accent); color: #fff; }
+  .phase-circle.future2 { background: var(--primary); color: #fff; }
+  .phase-circle.future3 { background: var(--muted); color: #fff; }
+  .phase h4 { font-size: 14px; color: var(--primary); margin-bottom: 10px; }
+  .phase ul { list-style: none; font-size: 12px; color: var(--muted); line-height: 2; }
+
+  /* PRINCIPLE CARDS */
+  .principle {
+    display: flex; gap: 16px; align-items: flex-start; padding: 16px;
+    background: var(--surface); border-radius: 10px; border: 1px solid var(--border); margin-bottom: 12px;
+  }
+  .principle-icon { font-size: 28px; flex-shrink: 0; }
+  .principle-body h4 { margin: 0 0 4px; font-size: 15px; }
+  .principle-body p { margin: 0; font-size: 13px; color: var(--muted); }
+
+  /* FOOTER */
+  .doc-footer {
+    background: var(--primary); color: rgba(255,255,255,0.6); padding: 24px 60px;
+    font-size: 13px; display: flex; justify-content: space-between; gap: 20px;
+  }
+
+  /* RESPONSIVE MEDIA QUERIES */
+  @media (max-width: 992px) {
+    body { flex-direction: column; }
+    
+    #mobile-header { display: flex; }
+    
+    #sidebar {
+      transform: translateX(-100%);
+      top: 54px;
+      height: calc(100vh - 54px);
+      min-height: auto;
+      width: 100%;
+      max-width: 300px;
+      box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+    }
+    #sidebar.open { transform: translateX(0); }
+    #sidebar .logo { display: none; }
+
+    #main {
+      margin-left: 0;
+      max-width: 100%;
+      padding-top: 54px;
+    }
+
+    .section { padding: 40px 20px; }
+    #cover { padding: 80px 20px 40px; min-height: auto; }
+    #cover h1 { font-size: 38px; }
+    #cover .cover-sub { font-size: 16px; }
+    #cover .cover-meta { gap: 20px; margin-top: 30px; }
+
+    .card-grid-2, .card-grid-3, .card-grid-4 { grid-template-columns: 1fr; }
+    
+    .roadmap { flex-direction: column; gap: 30px; }
+    .roadmap::before { left: 40px; top: 0; bottom: 0; width: 4px; height: auto; }
+    .phase { text-align: left; padding-left: 80px; }
+    .phase-circle { margin: 0; position: absolute; left: 14px; top: 0; }
+    
+    .doc-footer { padding: 24px 20px; flex-direction: column; text-align: center; }
+  }
+
+  @media print {
+    #sidebar, #mobile-header { display: none; }
+    #main { margin-left: 0; max-width: 100%; padding-top: 0; }
+    .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div id="mobile-header">
+  <h2>TeamsDash</h2>
+  <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">&#9776;</button>
+</div>
+
+<nav id="sidebar">
+  <div class="logo">
+    <h2>TeamsDash</h2>
+    <p>Solution Design Document v1.0</p>
+  </div>
+  <nav id="sidebarNav">
+    <div class="section-label">Document</div>
+    <a href="#cover">Cover Page</a>
+    <a href="#toc">Table of Contents</a>
+    <a href="#exec-summary">Executive Summary</a>
+    <div class="section-label">Architecture</div>
+    <a href="#solution-arch">Solution Architecture</a>
+    <a href="#architecture-principles">Architecture Principles</a>
+    <a href="#data-model">SharePoint Data Model</a>
+    <div class="section-label">Application</div>
+    <a href="#power-apps">Power Apps Design</a>
+    <a href="#ticket-assignment">Ticket Assignment Logic</a>
+    <a href="#workload">Workload Management</a>
+    <a href="#administration">Administration Module</a>
+    <div class="section-label">Automation</div>
+    <a href="#power-automate">Power Automate Flows</a>
+    <a href="#teams-design">Microsoft Teams Design</a>
+    <a href="#adaptive-card">Adaptive Card Design</a>
+    <div class="section-label">Analytics</div>
+    <a href="#pbi-architecture">Power BI Architecture</a>
+    <a href="#reporting">Reporting Module</a>
+    <a href="#report-builder">Custom Report Builder</a>
+    <a href="#dax">DAX Measures</a>
+    <a href="#power-query">Power Query</a>
+    <div class="section-label">Security &amp; Governance</div>
+    <a href="#rls">Row Level Security</a>
+    <a href="#security-arch">Security Architecture</a>
+    <a href="#governance">Governance Model</a>
+    <div class="section-label">Performance &amp; Roadmap</div>
+    <a href="#performance">Performance Design</a>
+    <a href="#roadmap">Future Roadmap</a>
+  </nav>
+</nav>
+
+<div id="main">
+
+<section id="cover">
+  <div class="cover-badge">Enterprise Solution Design Document</div>
+  <h1>Teams<span>Dash</span></h1>
+  <div class="cover-sub">Enterprise Ticket Tracking, Team Assignment, Work Management, Collaboration &amp; Reporting Platform</div>
+  <div class="cover-meta">
+    <div class="meta-item"><strong>Document Version</strong>1.0 — Initial Release</div>
+    <div class="meta-item"><strong>Classification</strong>Internal — Confidential</div>
+    <div class="meta-item"><strong>Platform</strong>Microsoft Power Platform</div>
+    <div class="meta-item"><strong>Status</strong>Approved for Development</div>
+  </div>
+  <div class="cover-tags">
+    <span class="tag">SharePoint Online</span>
+    <span class="tag">Power Apps</span>
+    <span class="tag">Power Automate</span>
+    <span class="tag">Microsoft Teams</span>
+    <span class="tag">Power BI</span>
+    <span class="tag">Adaptive Cards</span>
+    <span class="tag">Enterprise Grade</span>
+    <span class="tag">Low Code</span>
+  </div>
+</section>
+
+<section id="toc" class="section">
+  <div class="section-header">
+    <div class="section-number">Document Navigation</div>
+    <h2>Table of Contents</h2>
+  </div>
+  <div class="card-grid card-grid-2">
+    <div>
+      <ul class="toc-list">
+        <li><a href="#exec-summary"><span class="toc-num">01</span> Executive Summary</a></li>
+        <li class="toc-sub"><a href="#exec-summary">Business Objectives &amp; Success Criteria</a></li>
+        <li><a href="#solution-arch"><span class="toc-num">02</span> Solution Architecture</a></li>
+        <li class="toc-sub"><a href="#solution-arch">Component Diagram &amp; Data Flow</a></li>
+        <li><a href="#architecture-principles"><span class="toc-num">03</span> Architecture Principles</a></li>
+        <li><a href="#data-model"><span class="toc-num">04</span> SharePoint Data Model</a></li>
+        <li class="toc-sub"><a href="#data-model">List Schemas, ERD, Relationships</a></li>
+        <li><a href="#power-apps"><span class="toc-num">05</span> Power Apps Design</a></li>
+        <li class="toc-sub"><a href="#power-apps">Screen Wireframes &amp; UX Specs</a></li>
+        <li><a href="#ticket-assignment"><span class="toc-num">06</span> Ticket Assignment Logic</a></li>
+        <li><a href="#workload"><span class="toc-num">07</span> Workload Management</a></li>
+        <li><a href="#administration"><span class="toc-num">08</span> Administration Module</a></li>
+      </ul>
+    </div>
+    <div>
+      <ul class="toc-list">
+        <li><a href="#power-automate"><span class="toc-num">09</span> Power Automate Flows</a></li>
+        <li class="toc-sub"><a href="#power-automate">Ticket Creation &amp; Notification Flows</a></li>
+        <li><a href="#teams-design"><span class="toc-num">10</span> Microsoft Teams Design</a></li>
+        <li><a href="#adaptive-card"><span class="toc-num">11</span> Adaptive Card Design</a></li>
+        <li><a href="#pbi-architecture"><span class="toc-num">12</span> Power BI Architecture</a></li>
+        <li><a href="#reporting"><span class="toc-num">13</span> Reporting Module</a></li>
+        <li><a href="#report-builder"><span class="toc-num">14</span> Custom Report Builder</a></li>
+        <li><a href="#rls"><span class="toc-num">15</span> Row Level Security</a></li>
+        <li><a href="#dax"><span class="toc-num">16</span> DAX Measures</a></li>
+        <li><a href="#power-query"><span class="toc-num">17</span> Power Query Strategy</a></li>
+        <li><a href="#security-arch"><span class="toc-num">18</span> Security Architecture</a></li>
+        <li><a href="#governance"><span class="toc-num">19</span> Governance Model</a></li>
+        <li><a href="#performance"><span class="toc-num">20</span> Performance Design</a></li>
+        <li><a href="#roadmap"><span class="toc-num">21</span> Future Roadmap</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="exec-summary" class="section">
+  <div class="section-header">
+    <div class="section-number">Section 01</div>
+    <h2>Executive Summary</h2>
+  </div>
+  <p>TeamsDash is an enterprise-grade work management and collaboration platform built entirely on the Microsoft Power Platform ecosystem. It replaces an Excel-based ticket management process with a scalable, governed, and fully auditable solution that integrates natively with Microsoft 365.</p>
+  <p>The platform serves a team of 15–30 analysts, assignors, and managers, handling 50–100 client accounts across multiple platforms, with a projected throughput of 500–1,000 tickets per month. All configuration — clients, platforms, users, roles, statuses, and access — is managed through an Administration module, requiring zero redevelopment for operational changes.</p>
+
+  <h3>Business Problem</h3>
+  <div class="card-grid card-grid-2">
+    <div class="card accent-danger">
+      <h4>❌ Current State (Excel-Based)</h4>
+      <ul style="margin-top:10px;padding-left:18px;font-size:14px;line-height:2">
+        <li>No real-time visibility into ticket status</li>
+        <li>Manual assignment with no eligibility logic</li>
+        <li>No workload balancing or capacity data</li>
+        <li>Ad-hoc collaboration via email and chat</li>
+        <li>No audit trail or access governance</li>
+        <li>Reporting requires manual data aggregation</li>
+        <li>No escalation or SLA tracking capability</li>
+      </ul>
+    </div>
+    <div class="card accent-green">
+      <h4>✅ Future State (TeamsDash)</h4>
+      <ul style="margin-top:10px;padding-left:18px;font-size:14px;line-height:2">
+        <li>Real-time ticket tracking with status visibility</li>
+        <li>Access-controlled assignment engine</li>
+        <li>Workload dashboards with capacity utilization</li>
+        <li>Automated Teams chat creation per ticket</li>
+        <li>Adaptive Card updates in Teams channels</li>
+        <li>Power BI live reports and executive dashboards</li>
+        <li>Full audit trail via SharePoint versioning</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Solution Scope</h3>
+  <div class="card-grid card-grid-3">
+    <div class="card accent-left">
+      <h4>🎫 Ticket Management</h4>
+      <p>Intake, assignment, status tracking, workload visibility, and completion workflows with full audit history.</p>
+    </div>
+    <div class="card accent-left">
+      <h4>👥 Team Collaboration</h4>
+      <p>Automated Teams chat creation, Adaptive Card pinning, and member management per ticket lifecycle.</p>
+    </div>
+    <div class="card accent-left">
+      <h4>📊 Reporting &amp; Analytics</h4>
+      <p>Executive dashboards, operational reports, team utilization, custom report builder, and Power BI semantic model with RLS.</p>
+    </div>
+    <div class="card accent-green">
+      <h4>🔐 Security &amp; Governance</h4>
+      <p>Role-based access control, Row Level Security, SharePoint permissions, and environment strategy with ALM pipeline.</p>
+    </div>
+    <div class="card accent-green">
+      <h4>⚙️ Administration</h4>
+      <p>Self-service management of users, clients, platforms, access mappings, and role assignments by authorized managers.</p>
+    </div>
+    <div class="card accent-green">
+      <h4>🔮 Extensibility</h4>
+      <p>Configuration-first architecture supporting new clients, platforms, statuses, and workflows without code changes.</p>
+    </div>
+  </div>
+
+  <h3>Key Success Criteria</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <tr><th>KPI</th><th>Metric</th><th>Target</th></tr>
+      <tr><td>Ticket Assignment Time</td><td>Time from creation to assignment</td><td>&lt; 5 minutes (automated)</td></tr>
+      <tr><td>Teams Chat Creation</td><td>Automated chat per ticket</td><td>100% automation</td></tr>
+      <tr><td>Reporting Freshness</td><td>Data latency in Power BI</td><td>&lt; 1 hour refresh</td></tr>
+      <tr><td>User Adoption</td><td>Active users within 30 days</td><td>&gt; 90%</td></tr>
+      <tr><td>Admin Self-Service</td><td>Config changes requiring dev</td><td>0 for operational changes</td></tr>
+      <tr><td>System Availability</td><td>Uptime (Microsoft SLA)</td><td>99.9%</td></tr>
+      <tr><td>Performance</td><td>App load time</td><td>&lt; 3 seconds</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="solution-arch" class="section">
+  <div class="section-header">
+    <div class="section-number">Section 02</div>
+    <h2>Solution Architecture</h2>
+  </div>
+  <p>TeamsDash is a multi-layer enterprise architecture built on Microsoft Power Platform. All components operate within the Microsoft 365 security boundary and communicate via native connectors, minimizing integration risk and licensing complexity.</p>
+
+  <h3>High-Level Architecture Diagram</h3>
+  <div class="diagram-box">
+    <div class="diagram-title">System Architecture — Components &amp; Data Flow</div>
+    <div class="mermaid">
+graph TB
+    subgraph USERS["👤 Users (15–30 Team Members)"]
+        MGR[Manager]
+        ASN[Assignor]
+        ANA[Analyst]
+    end
+
+    subgraph PRESENTATION["📱 Presentation Layer"]
+        PA["⚡ Power Apps Canvas App<br/>TeamsDash Application"]
+        TEAMS_UI["💬 Microsoft Teams<br/>Adaptive Cards + Chats"]
+        PBI_DASH["📊 Power BI Dashboards<br/>Reports &amp; Analytics"]
+    end
+
+    subgraph DATA["🗄️ Data Layer — SharePoint Online"]
+        TM["👥 Team Members"]
+        PL["🏷️ Platforms"]
+        APM["🔗 Account Platform Mapping"]
+        AM["🔑 Access Mapping"]
+        TMR["🎭 Team Member Roles"]
+        TK["🎫 Tickets"]
+        SR["💾 Saved Reports"]
+    end
+
+    subgraph AUTOMATION["⚙️ Automation Layer — Power Automate"]
+        F1["🆕 Ticket Creation Flow"]
+        F2["📢 Status Update Flow"]
+        F3["🔔 Notification Flow"]
+        F4["📋 Adaptive Card Update Flow"]
+    end
+
+    subgraph COLLAB["💬 Collaboration Layer — Microsoft Teams"]
+        GC["Group Chat per Ticket"]
+        AC["Pinned Adaptive Card"]
+        WM["Welcome Message"]
+    end
+
+    subgraph ANALYTICS["📈 Analytics Layer — Power BI"]
+        PQ["Power Query Transformations"]
+        SM["Semantic Model + RLS"]
+        RPT["Reports &amp; Dashboards"]
+    end
+
+    subgraph SECURITY["🔒 Security Layer"]
+        AAD["Azure Active Directory"]
+        RBAC["Role-Based Access Control"]
+        RLS_NODE["Row Level Security"]
+    end
+
+    MGR & ASN & ANA --> PA
+    PA <--> DATA
+    PA --> AUTOMATION
+    AUTOMATION --> COLLAB
+    AUTOMATION --> DATA
+    DATA --> ANALYTICS
+    ANALYTICS --> PBI_DASH
+    COLLAB --> TEAMS_UI
+    SECURITY -.->|Governs| PRESENTATION
+    SECURITY -.->|Governs| DATA
+    SECURITY -.->|Governs| ANALYTICS
+
+    style USERS fill:#e8f4ff,stroke:#0f3460
+    style PRESENTATION fill:#f0fff8,stroke:#16c79a
+    style DATA fill:#fff8e0,stroke:#f5a623
+    style AUTOMATION fill:#f0e8ff,stroke:#6600cc
+    style COLLAB fill:#e8f0ff,stroke:#0066cc
+    style ANALYTICS fill:#ffe8f0,stroke:#cc0066
+    style SECURITY fill:#ffe0e0,stroke:#cc0000
+    </div>
+  </div>
+
+  <h3>Component Interaction Matrix</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <tr><th>Component</th><th>Technology</th><th>Role</th><th>Primary Connector</th></tr>
+      <tr><td>Canvas App</td><td>Power Apps</td><td>Primary user interface for all ticket operations</td><td>SharePoint Connector</td></tr>
+      <tr><td>Data Store</td><td>SharePoint Online Lists</td><td>Master data, transactional data, configuration</td><td>Native</td></tr>
+      <tr><td>Automation</td><td>Power Automate Cloud Flows</td><td>Teams chat creation, notifications, card updates</td><td>Teams + SharePoint</td></tr>
+      <tr><td>Collaboration</td><td>Microsoft Teams</td><td>Per-ticket group chats, Adaptive Cards, communication</td><td>Graph API via PA</td></tr>
+      <tr><td>Analytics</td><td>Power BI Premium/Pro</td><td>Dashboards, reports, semantic model, RLS</td><td>SharePoint Connector</td></tr>
+      <tr><td>Identity</td><td>Azure Active Directory</td><td>Authentication, authorization, user profiles</td><td>Office 365 Users</td></tr>
+    </table>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">ℹ️</div>
+    <div class="callout-body">
+      <strong>Delegation-Safe Architecture</strong>
+      <p>All SharePoint queries are designed to use delegable functions (Filter on indexed columns, LookUp, Search on Title fields). No Collect() is used on large datasets. Pagination is implemented using LoadData() with a 500-record page size to stay within SharePoint's 5,000-item threshold limits.</p>
+    </div>
+  </div>
+</section>
+
+<section id="architecture-principles" class="section">
+  <div class="section-header">
+    <div class="section-number">Section 03</div>
+    <h2>Architecture Principles</h2>
+  </div>
+  <p>Every design decision in TeamsDash is governed by the following principles. These principles ensure the platform remains maintainable, scalable, and extensible without requiring redevelopment for operational changes.</p>
+
+  <div class="principle"><div class="principle-icon">⚙️</div><div class="principle-body"><h4>Configuration Over Customization</h4><p>New clients, platforms, statuses, users, and roles are managed through the Administration module. Zero code changes required for operational configuration.</p></div></div>
+  <div class="principle"><div class="principle-icon">🔒</div><div class="principle-body"><h4>Security by Design</h4><p>Role-based access control is enforced at every layer: SharePoint permissions, Power Apps visibility logic, Power Automate connection owners, and Power BI Row Level Security.</p></div></div>
+  <div class="principle"><div class="principle-icon">📈</div><div class="principle-body"><h4>Scalability First</h4><p>SharePoint list architecture, Power BI incremental refresh, and delegation-friendly Power Apps design all account for multi-year data growth (10,000+ tickets).</p></div></div>
+  <div class="principle"><div class="principle-icon">🔗</div><div class="principle-body"><h4>Delegation-Friendly Power Apps</h4><p>All data queries use delegable operations. Filters run server-side on indexed SharePoint columns. No client-side filtering of large collections.</p></div></div>
+  <div class="principle"><div class="principle-icon">📋</div><div class="principle-body"><h4>SharePoint Best Practices</h4><p>Indexed columns on all filter fields, views for each query pattern, minimal lookups in galleries, and list column limits respected.</p></div></div>
+  <div class="principle"><div class="principle-icon">🏗️</div><div class="principle-body"><h4>Extensible Architecture</h4><p>New workflow triggers, notification channels, and report types can be added without architectural changes. Power Automate flows use environment variables for all configuration.</p></div></div>
+  <div class="principle"><div class="principle-icon">🔧</div><div class="principle-body"><h4>Low Maintenance</h4><p>No custom code (Azure Functions, custom connectors) in Phase 1. All automation uses native Power Platform connectors with built-in retry policies.</p></div></div>
+  <div class="principle"><div class="principle-icon">🚫</div><div class="principle-body"><h4>Minimal Hardcoding</h4><p>All configuration values (site URLs, list names, flow IDs, email templates) are stored in Power Apps environment variables or a Configuration SharePoint list, not embedded in formulas.</p></div></div>
+</section>
+
+<section id="data-model" class="section">
+  <div class="section-header">
+    <div class="section-number">Section 04</div>
+    <h2>SharePoint Data Model</h2>
+  </div>
+  <p>The data model consists of seven SharePoint Online lists forming a normalized relational structure. Lookup columns create referential integrity at the SharePoint layer, while the Power BI semantic model builds additional join relationships for analytics.</p>
+
+  <h3>Entity Relationship Diagram</h3>
+  <div class="diagram-box">
+    <div class="diagram-title">SharePoint ERD — All Lists &amp; Relationships</div>
+    <div class="mermaid">
+erDiagram
+    TEAM_MEMBERS {
+        int TeamMemberID PK
+        string FullName
+        string LLID
+        string Email
+        string Team
+        bool ActiveStatus
+        date TeamJoiningDate
+    }
+    PLATFORMS {
+        int PlatformID PK
+        string PlatformName
+        bool ActiveStatus
+    }
+    ACCOUNT_PLATFORM_MAPPING {
+        int MappingID PK
+        string AccountName
+        string PlatformName FK
+        bool ActiveStatus
+    }
+    ACCESS_MAPPING {
+        int MappingID PK
+        int TeamMemberLookup FK
+        string AccountLookup FK
+        string PlatformLookup FK
+        bool ActiveStatus
+    }
+    TEAM_MEMBER_ROLES {
+        int RoleID PK
+        int TeamMemberLookup FK
+        string Role
+        bool ActiveStatus
+    }
+    TICKETS {
+        int TicketID PK
+        string TicketName
+        string TicketLink
+        string ClientAccount FK
+        string Platform FK
+        int CampaignCount
+        string InsertionOrders
+        int RequestLeadLookup FK
+        string AdditionalMembers
+        string TicketStatus
+        datetime DateCreated
+        date DueDate
+        datetime CompletedDate
+        float HoursLoggedByAssignor
+        datetime InProgressTimestamp
+        datetime CompleteTimestamp
+        string TeamsChatID
+        string TeamsChatLink
+        datetime LastUpdated
+    }
+    SAVED_REPORTS {
+        int ReportID PK
+        string ReportName
+        int CreatedByLookup FK
+        string FilterJSON
+        string MetricsJSON
+        bool IsShared
+        datetime CreatedDate
+    }
+
+    TEAM_MEMBERS ||--o{ ACCESS_MAPPING : "has access to"
+    TEAM_MEMBERS ||--o{ TEAM_MEMBER_ROLES : "has role"
+    TEAM_MEMBERS ||--o{ TICKETS : "is request lead on"
+    TEAM_MEMBERS ||--o{ SAVED_REPORTS : "created by"
+    PLATFORMS ||--o{ ACCOUNT_PLATFORM_MAPPING : "mapped to"
+    PLATFORMS ||--o{ ACCESS_MAPPING : "in"
+    ACCOUNT_PLATFORM_MAPPING ||--o{ ACCESS_MAPPING : "governs"
+    ACCOUNT_PLATFORM_MAPPING ||--o{ TICKETS : "used in"
+    </div>
+  </div>
+
+  <h3>List 1: Team Members</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <tr><th>Column Name</th><th>Type</th><th>Key</th><th>Notes</th></tr>
+      <tr><td>TeamMemberID</td><td>Number (Auto-increment)</td><td><span class="badge badge-pk">PK</span></td><td>Surrogate key; auto-generated on creation</td></tr>
+      <tr><td>Title (Full Name)</td><td>Single line text</td><td><span class="badge badge-req">Required</span></td><td>Indexed; used in search and gallery display</td></tr>
+      <tr><td>LLID</td><td>Single line text</td><td><span class="badge badge-req">Required</span></td><td>Unique login identifier; indexed</td></tr>
+      <tr><td>Email</td><td>Single line text</td><td><span class="badge badge-req">Required</span></td><td>Used for Teams chat member addition</td></tr>
+      <tr><td>Team</td><td>Choice</td><td><span class="badge badge-opt">Optional</span></td><td>Team grouping for workload views</td></tr>
+      <tr><td>ActiveStatus</td><td>Yes/No</td><td><span class="badge badge-req">Required</span></td><td>Default: Yes. NEVER delete inactive users — set to No</td></tr>
+      <tr><td>TeamJoiningDate</td><td>Date and Time</td><td><span class="badge badge-opt">Optional</span></td><td>Used for tenure reporting</td></tr>
+    </table>
+  </div>
+  <div class="callout callout-warn">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-body">
+      <strong>Soft Delete Policy</strong>
+      <p>Inactive users must NEVER be deleted from the Team Members list. Historical ticket records reference their names and IDs. Setting ActiveStatus = No removes them from assignment dropdowns while preserving all historical data integrity. This is enforced at the Power Apps level with no delete button exposed in the UI.</p>
+    </div>
+  </div>
+
+  <h3>List 2: Platforms</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <tr><th>Column Name</th><th>Type</th><th>Key</th><th>Notes</th></tr>
+      <tr><td>PlatformID</td><td>Number</td><td><span class="badge badge-pk">PK</span></td><td>Auto-generated</td></tr>
+      <tr><td>Title (Platform Name)</td><td>Single line text</td><td><span class="badge badge-req">Required</span></td><td>Indexed; e.g. "Google Ads", "Meta Ads"</td></tr>
+      <tr><td>ActiveStatus</td><td>Yes/No</td><td><span class="badge badge-req">Required</span></td><td>Soft delete; inactive platforms hidden from intake</td></tr>
+    </table>
+  </div>
+
+  <h3>List 3: Account Platform Mapping</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <tr><th>Column Name</th><th>Type</th><th>Key</th><th>Notes</th></tr>
+      <tr><td>MappingID</td><td>Number</td><td><span class="badge badge-pk">PK</span></td><td>Auto-generated</td></tr>
+      <tr><td>Title (Account Name)</td><td>Single line text</td><td><span class="badge badge-req">Required</span></td><td>Indexed; client account name</td></tr>
+      <tr><td>PlatformName</td><td>Lookup → Platforms</td><td><span class="badge badge-fk">FK</span></td><td>Only active platforms shown in lookup</td></tr>
+      <tr><td>ActiveStatus</td><td>Yes/No</td><td><span class="badge badge-req">Required</span></td><td>Controls visibility in ticket intake dropdowns</td></tr>
+    </table>
+  </div>
+  <div class="callout callout-info">
+    <div class="callout-icon">💡</div>
+    <div class="callout-body">
+      <strong>Cascading Dropdown Logic</strong>
+      <p>When a ticket creator selects an Account, Power Apps queries Account Platform Mapping to display only the Platforms associated with that account (where ActiveStatus = true). This prevents invalid account/platform combinations and reduces user error.</p>
+    </div>
+  </div>
+
+  <h3>List 4: Access Mapping</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <tr><th>Column Name</th><th>Type</th><th>Key</th><th>Notes</th></tr>
+      <tr><td>MappingID</td><td>Number</td><td><span class="badge badge-pk">PK</span></td><td>Auto-generated</td></tr>
+      <tr><td>TeamMemberLookup</td><td>Lookup → Team Members</td><td><span class="badge badge-fk">FK</span></td><td>The team member being granted access</td></tr>
+      <tr><td>AccountLookup</td><td>Lookup → Account Platform Mapping</td><td><span class="badge badge-fk">FK</span></td><td>The account they can work on</td></tr>
+      <tr><td>PlatformLookup</td><td>Lookup → Platforms</td><td><span class="badge badge-fk">FK</span></td><td>The platform within that account</td></tr>
+      <tr><td>ActiveStatus</td><td>Yes/No</td><td><span class="badge badge-req">Required</span></td><td>Controls assignment eligibility</td></tr>
+    </table>
+  </div>
+
+  <h3>List 5: Team Member Roles</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <tr><th>Column Name</th><th>Type</th><th>Key</th><th>Notes</th></tr>
+      <tr><td>RoleID</td><td>Number</td><td><span class="badge badge-pk">PK</span></td><td>Auto-generated</td></tr>
+      <tr><td>TeamMemberLookup</td><td>Lookup → Team Members</td><td><span class="badge badge-fk">FK</span></td><td>One team member can have one or more roles</td></tr>
+      <tr><td>Role</td><td>Choice: Manager / Assignor / Analyst</td><td><span class="badge badge-req">Required</span></td><td>Drives UI visibility and feature access</td></tr>
+      <tr><td>ActiveStatus</td><td>Yes/No</td><td><span class="badge badge-req">Required</span></td><td>Roles can be suspended without deletion</td></tr>
+    </table>
+  </div>
+
+  <h3>List 6: Tickets</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <tr><th>Column Name</th><th>Type</th><th>Notes</th></tr>
+      <tr><td>TicketID</td><td>Number (Auto)</td><td>System-generated ticket reference number</td></tr>
+      <tr><td>Title (Ticket Name)</td><td>Single line text</td><td>Indexed; used in search</td></tr>
+      <tr><td>TicketLink</td><td>Hyperlink</td><td>External reference link (JIRA, ADO, etc.)</td></tr>
+      <tr><td>ClientAccount</td><td>Lookup → Account Platform Mapping</td><td>Indexed; used for validation</td></tr>
+    </table>
+  </div>
+</section>
+
+</div><div class="doc-footer">
+  <span>TeamsDash Enterprise Solution Design Document</span>
+  <span>Platform: Power Apps &amp; Power BI</span>
+  <span>Confidential — Internal Use Only</span>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#e8f4ff',
+      primaryTextColor: '#0f3460',
+      primaryBorderColor: '#0f3460',
+      lineColor: '#1a6fc4',
+      secondaryColor: '#f0fff8',
+      tertiaryColor: '#fff8e0',
+      background: '#ffffff',
+      mainBkg: '#e8f4ff',
+      nodeBorder: '#0f3460',
+      clusterBkg: '#f4f7fb',
+      titleColor: '#0f3460',
+      edgeLabelBackground: '#ffffff',
+      fontSize: '14px'
+    },
+    flowchart: { curve: 'basis', useMaxWidth: true },
+    sequence: { useMaxWidth: true },
+    er: { useMaxWidth: true },
+    gantt: { useMaxWidth: true }
+  });
+
+  // Sidebar active link tracking
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('#sidebar nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+
+  // Mobile navigation handling
+  const menuToggle = document.getElementById('menuToggle');
+  const sidebar = document.getElementById('sidebar');
+  
+  menuToggle.addEventListener('click', (e) => {
+    sidebar.classList.toggle('open');
+    e.stopPropagation();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== menuToggle) {
+      sidebar.classList.remove('open');
+    }
+  });
+
+  document.querySelectorAll('#sidebar nav a').forEach(link => {
+    link.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+    });
+  });
+</script>
+
+</body>
+</html>
